@@ -5,10 +5,10 @@
 # Writer: Ted, Jung
 # Description:
 #   Ingestion and Cache
-#   use docker run
 # > docker run --name redis-vecdb -d -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
-#   load -> pipeline[transform(cleaning,splitting,embedding)] -> cache 
-#                                                             -> vectorstore
+#   load(from google) -> pipeline[transform(cleaning,splitting,embedding)] 
+#                                     -> cache
+#                                     -> vectorstore
 # ===========================================================================
 
 
@@ -19,6 +19,7 @@ from llama_index.core.ingestion import (
     IngestionPipeline,
     IngestionCache,
 )
+
 from llama_index.core import VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
 
@@ -55,15 +56,17 @@ custom_schema = IndexSchema.from_dict(
     }
 )
 
+
+
+# Define Vector Store (clear vector store if exists)
 vector_store = RedisVectorStore(
     schema=custom_schema,
     redis_url="redis://localhost:6379",
 )
 
-
-# Optional: clear vector store if exists
 if vector_store.index_exists():
     vector_store.delete_index()
+
 
 
 # Set up the ingestion cache layer
@@ -107,7 +110,7 @@ def load_data(folder_id: str):
         doc.id_ = doc.metadata["file_name"]
     return docs
 
-docs = load_data(folder_id="1RFhr3-xxxxxxxxxxxxxxx")
+docs = load_data(folder_id="ted-xxxxxxxxx")
 nodes = pipeline.run(documents=docs)
 
 
@@ -119,7 +122,7 @@ print(str(response))
 
 
 # Modify and Reload the Data
-docs = load_data(folder_id="1RFhr3-KmOZCR5rtp4dlOMNl3LKe1kOA5")
+docs = load_data(folder_id="ted-xxxxxxxx")
 nodes = pipeline.run(documents=docs)
 print(f"Ingested {len(nodes)} Nodes")
 
