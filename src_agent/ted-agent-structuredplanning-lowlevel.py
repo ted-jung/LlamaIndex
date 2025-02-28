@@ -63,7 +63,7 @@ except:
 
 
 # if os.path.exists(curr_dir) and os.path.isdir(curr_dir):
-if is_loaded:
+if not is_loaded:
     lyft_documents = SimpleDirectoryReader(
         input_files=[f"{curr_dir}/data/pdf/lyft_2021.pdf"]
         ).load_data()
