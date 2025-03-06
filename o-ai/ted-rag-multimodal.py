@@ -1,10 +1,11 @@
 # ===========================================================================
 # RAG - MultiModal
 # Created: 28, Feb 2025
-# Updated: 28, Feb 2025
+# Updated: 4, Mars 2025
 # Writer: Ted, Jung
 # Description: 
 #   1. MultiModal index & LLM for Multimodal
+#   2. notice: CH (text-768, image-512)
 # ===========================================================================
 
 
@@ -35,6 +36,12 @@ from llama_index.core.query_engine import SimpleMultiModalQueryEngine
 
 from llama_index.core.response.notebook_utils import display_source_node
 
+# from transformers import CLIPConfig
+# config = CLIPConfig.from_pretrained("openai/clip-vit-base-patch32")
+# text_hidden_size = config.text_config.hidden_size
+# vision_hidden_size = config.vision_config.hidden_size
+
+
 
 curr_dir = os.getcwd()
 
@@ -46,9 +53,12 @@ image_urls = [
 image_documents = load_image_urls(image_urls)
 
 
+embed_model_txt = HuggingFaceEmbedding(model_name="openai/clip-vit-base-patch32")
+embed_model_img = HuggingFaceEmbedding(model_name="openai/clip-vit-base-patch32")
+# embed_model_txt = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
+# embed_model_img = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
+Settings.embed_model = embed_model_txt
 
-embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-Settings.embed_model = embed_model
 openai_mm_llm = OpenAIMultiModal(
     model="gpt-4o-mini", max_new_tokens=300
 )
@@ -231,7 +241,7 @@ ch_client = clickhouse_connect.get_client(
     host="localhost",
     port=8123,
     username="default",
-    password="magic",
+    password="",
     database="default",
 )
 
@@ -240,12 +250,12 @@ ch_client = clickhouse_connect.get_client(
 text_store = ClickHouseVectorStore(
     ch_client, 
     table="text_collection",
-    embed_model=embed_model
+    embed_model=embed_model_txt
 )
 image_store = ClickHouseVectorStore(
     ch_client, 
     table="image_collection",
-    embed_model=embed_model
+    embed_model=embed_model_img
 )
 
 
