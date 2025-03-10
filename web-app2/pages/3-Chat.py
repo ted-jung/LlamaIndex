@@ -17,7 +17,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import PromptTemplate
-import random
+
 
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
@@ -78,6 +78,7 @@ col1, col2 = st.columns([3, 7])
 with col1:
 
     st.header("Choose your LLM!")
+    # options to select the LLM (add more if needed)
     option=st.selectbox(" ", ("-", "llama3.2", "gpt-4o-mini"),)
 
     if option == "llama3.2":
@@ -88,12 +89,15 @@ with col1:
         st.write("Please select a LLM")
         st.stop()
 
+    Settings.llm = llm
     st.write("You selected:", option)
 
     st.header("Select your document!")
     uploaded_file = st.file_uploader("Choose your `.pdf` file", type="pdf")
 
     if uploaded_file:
+        display_pdf(uploaded_file)
+
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
                 file_path = os.path.join(temp_dir, uploaded_file.name)
@@ -118,15 +122,13 @@ with col1:
                     
                     docs = loader.load_data()
 
-                    # setup llm & embedding model
+                    # setup llm & embedding model and Creating an index over loaded data and indexing it
                     # llm=load_llm()
                     embed_model = HuggingFaceEmbedding( model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True)
-                    # Creating an index over loaded data
                     Settings.embed_model = embed_model
                     index = VectorStoreIndex.from_documents(docs, show_progress=True)
 
                     # Create the query engine, where we use a cohere reranker on the fetched nodes
-                    Settings.llm = llm
                     query_engine = index.as_query_engine(streaming=True)
 
                     # ====== Customise prompt template ======
@@ -135,7 +137,8 @@ with col1:
                     "---------------------\n"
                     "{context_str}\n"
                     "---------------------\n"
-                    "Given the context information above I want you to think step by step to answer the query in a crisp manner, incase case you don't know the answer say 'I don't know!'.\n"
+                    "Given the context information above I want you to think step by step to answer the query in a crisp manner, \n"
+                    "incase case you don't know the answer say 'I don't know!'.\n"
                     "Query: {query_str}\n"
                     "Answer: "
                     )
@@ -151,7 +154,6 @@ with col1:
 
                 # Inform the user that the file is processed and Display the PDF uploaded
                 st.success("Ready to Chat!")
-                display_pdf(uploaded_file)
         except Exception as e:
             st.error(f"An error occurred: {e}")
             st.stop()
