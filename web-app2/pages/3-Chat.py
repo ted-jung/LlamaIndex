@@ -1,4 +1,13 @@
-
+# ===========================================================================
+# Chatting to know the content of the document
+# Created: 23, Feb 2025
+# Updated: 10, Mar 2025
+# Writer: Ted, Jung
+# Description:
+#   from LlamaHub (WikipediaReader, ResumeScreenPack)
+#   If you want to know the content of the document, you can chat with the LLM.
+#   -> Need to set False of refresh cache (gpt-4 is default , cost highly)
+# ===========================================================================
 
 import os
 import gc
@@ -129,6 +138,7 @@ with col1:
                     index = VectorStoreIndex.from_documents(docs, show_progress=True)
 
                     # Create the query engine, where we use a cohere reranker on the fetched nodes
+                    # the engine is set to streaming mode that allows for a more interactive chat experience
                     query_engine = index.as_query_engine(streaming=True)
 
                     # ====== Customise prompt template ======
@@ -138,7 +148,7 @@ with col1:
                     "{context_str}\n"
                     "---------------------\n"
                     "Given the context information above I want you to think step by step to answer the query in a crisp manner, \n"
-                    "incase case you don't know the answer say 'I don't know!'.\n"
+                    "in case you don't know the answer say 'I don't know!'.\n"
                     "Query: {query_str}\n"
                     "Answer: "
                     )
@@ -177,6 +187,7 @@ with col2:
     if prompt := st.chat_input("What's up?"):
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
+
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -193,7 +204,7 @@ with col2:
                 full_response += chunk
                 message_placeholder.markdown(full_response + "▌")
 
-            # full_response = query_engine.query(prompt)
+            #full_response = query_engine.query(prompt)
 
             message_placeholder.markdown(full_response)
             # st.session_state.context = ctx
