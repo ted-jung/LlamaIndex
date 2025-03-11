@@ -1,3 +1,15 @@
+# =============================================================================
+# Workflow
+# Created: 22, Jan 2025
+# Updated: 11, Mar 2025
+# Writer: Ted, Jung
+# Description: A workflow is the combination of steps and events that represent a process.
+#              Multiple steps are combined to form a workflow.
+# =============================================================================
+
+
+import asyncio
+
 from llama_index.core.workflow import (
     Event,
     StartEvent,
@@ -8,11 +20,11 @@ from llama_index.core.workflow import (
     draw_all_possible_flows,
     draw_most_recent_execution,
 )
-import asyncio
 
-# `pip install llama-index-llms-openai` if you don't already have it
 from llama_index.llms.ollama import Ollama
 
+
+llm = Ollama(model="llama3.2", request_timeout=360.0)
 
 class JokeEvent(Event):
     joke: str
@@ -23,7 +35,7 @@ class CriticEvent(Event):
 class ProgressEvent(Event):
     msg: str
 
-class SecondEvent(Event):
+class FinalEvent(Event):
     second_output: str
     response: str
     
@@ -53,20 +65,20 @@ class JokeFlow(Workflow):
         return CriticEvent(critic_output=str(response))
 
     @step
-    async def step_two(self, ctx: Context, ev: CriticEvent) -> SecondEvent:
+    async def step_two(self, ctx: Context, ev: CriticEvent) -> FinalEvent:
         generator = await self.llm.astream_complete(
             "Please give me the first 3 paragraphs of Moby Dick, a book in the public domain."
         )
         async for response in generator:
             # Allow the workflow to stream this piece of response
             ctx.write_event_to_stream(ProgressEvent(msg=response.delta))
-        return SecondEvent(
+        return FinalEvent(
             second_output="Second step complete, full response attached",
             response=str(response),
         )
 
     @step
-    async def empty_joke(self, ctx: Context, ev: SecondEvent) -> StopEvent:
+    async def empty_joke(self, ctx: Context, ev: FinalEvent) -> StopEvent:
         ctx.write_event_to_stream(ProgressEvent(msg="Step fourth is happening"))
         return StopEvent(result="Workflow complete.")
 
