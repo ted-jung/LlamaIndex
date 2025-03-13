@@ -42,6 +42,7 @@ class FinalEvent2(Event):
 
 class ParallelFlow(Workflow):
 
+    # send multiple events at the same time to different steps
     @step
     async def start(self, ctx: Context, ev: StartEvent) -> FirstEvent | SecondEvent | ThirdEvent:
         ctx.send_event(FirstEvent(query="Query 1-1"))
@@ -78,10 +79,12 @@ class ParallelFlow(Workflow):
         return FinalEvent2(query=ev.query)
 
 
+    # wait one or more events to be collected
     @step
     async def synthesize(self, ctx: Context, ev: FinalEvent|FinalEvent2) -> StopEvent | None:
 
         data = ctx.collect_events(ev, [FinalEvent, FinalEvent, FinalEvent2, FinalEvent2])
+
 
         if data is None or len(data) < 4:
             print("Not all data has been collected")
