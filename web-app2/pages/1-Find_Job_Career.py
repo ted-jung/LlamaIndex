@@ -41,8 +41,12 @@ def ted_query(str_context, str_query, tone_name):
         ---------------------
         {context_str}
         ---------------------
-        Given the context information and not prior knowledge, answer the query.
-        Please write the answer in the style of {tone_name}
+        Given the context(separated by comma) information and not prior knowledge, answer the query.
+        1. Total count at first line.
+        2. Make a table having five columns (seq, country, job position, counted job, continent).
+           Count job of role by each country and finally, grouping it by continent.
+        3. Show job for korea at the end.
+        4. Please write the answer in the style of {tone_name}
         Query: {query_str}
         Answer: \
     """
@@ -85,7 +89,7 @@ def ted_source_data(url):
     # CSS? replace with your web site
     try:
         element_present = EC.presence_of_element_located((By.CSS_SELECTOR, ".mb-16")) 
-        WebDriverWait(driver, 3).until(element_present) # Wait up to 3 seconds
+        WebDriverWait(driver, 6).until(element_present) # Wait up to 3 seconds
         html = driver.page_source                       # Get the updated HTML
         soup = BeautifulSoup(html, "html.parser")
 
@@ -127,21 +131,22 @@ def email_to(message):
 # Main
 if __name__ == "__main__":
 
-    st.markdown("# Job position @ClickHouse")
-    st.write(
-        """
-        This demo shows how to crawl web page summarize it's result via AI(OpenAI, LlamaIndex).
+    if st.button('Clear All Cache'):
+        st.cache_data.clear()
+        st.success('All cache cleared!')
 
-        (Web url: [ClickHouse Career](https://clickhouse.com/company/careers).)
-        """
-    )
+    if st.button('Find Job'):    
+        career_response = ted_source_data('https://clickhouse.com/company/careers')
 
-    career_response = ted_source_data('https://clickhouse.com/company/careers')
+        # message = ted_query(career_response, "Given data has two fields(Job, Country). \
+        #                                       Count each job grouped by country, continent order. \
+        #                                       Make a table using five columns (seq, country(includes remote), name of job,count of job opened, continent order by country with alphabetical order. \
+        #                                       Summarize Korea's hiring status at the end", "Shakespeare")
+        message = ted_query(career_response, "Which country have which job?\n"
+                                             " 1. Total count at first line.\n"
+                                             " 2. Make a table having five columns (seq, country, job position, counted job, continent). order by country, continent\n"
+                                             " 3. Show job for korea at the end.", "Shakespeare")
+        st.write(message.response)
 
-    message = ted_query(career_response, "Given index has two fields(Job, Country). \
-                                          List each country with job \
-                                          Make a table using five columns (number, country(includes remote), job position,count of job opened, grouping by continent and order by country with alphabetical order. \
-                                          Summarize hiring status at the end includes Korea job position and by continent", "Shakespeare")
-    st.write(message.response)
+    # email_to(message)    
 
-    # email_to(message.response)
