@@ -1,3 +1,4 @@
+# =============================================================================
 # Corrective RAG with workflow (CRAG)
 # Date: 14, Jan 2025
 # Writer: Ted, Jung
@@ -5,19 +6,19 @@
 #       Augmenting the relevance of retrieved documents through an evaluator and 
 #       Large-scale web searches, 
 #       Ensuring more accurate and reliable information is used in generation.
+# =============================================================================
 
 import os
 import asyncio
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.openai import OpenAI
 from llama_index.llms.ollama import Ollama
-from llama_index.core.workflow import draw_all_possible_flows
+
+from llama_index.tools.tavily_research.base import TavilyToolSpec
 
 from llama_index.core.query_pipeline import QueryPipeline
-from llama_index.tools.tavily_research.base import TavilyToolSpec
 from llama_index.core.base.base_retriever import BaseRetriever
-
-from llama_index.core.workflow import Event
 from llama_index.core.schema import NodeWithScore
 
 from llama_index.core import (
@@ -30,55 +31,56 @@ from llama_index.core import (
 )
 
 from llama_index.core.workflow import (
+    Event,
     Workflow,
     step,
     Context,
     StartEvent,
     StopEvent,
+    draw_all_possible_flows,
 )
 
 from IPython.display import Markdown, display
 
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-llm = Ollama(model="llama3.2", request_timeout=720.0)
+# llm = Ollama(model="llama3.2", request_timeout=720.0)
+llm = OpenAI(model="gpt-4o-mini")
 Settings.llm = llm
 
-tavily_ai_api_key ="tvly-xxxx"
+tavily_ai_api_key ="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"
+# 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
 
 
-
+# define events by actions
 class PrepEvent(Event):
     """Prep event (prepares for retrieval)."""
-
     pass
 
 
 class RetrieveEvent(Event):
     """Retrieve event (gets retrieved nodes)."""
-
     retrieved_nodes: list[NodeWithScore]
 
 
 class RelevanceEvalEvent(Event):
     """Relevance evaluation event (gets results of relevance evaluation)."""
-
     relevant_results: list[str]
 
 
 class TextExtractEvent(Event):
     """Text extract event. Extracts relevant text and concatenates."""
-
     relevant_text: str
 
 
 class QueryEvent(Event):
     """Query event. Queries given relevant text and search text."""
-
     relevant_text: str
     search_text: str
 
 
+# Two prompttemplate
+# one: for relevancy of results, the other one: refine a query for retrieving
 DEFAULT_RELEVANCY_PROMPT_TEMPLATE = PromptTemplate(
     template="""As a grader, your task is to evaluate the relevance of a document retrieved in response to a user's question.
 
@@ -115,7 +117,11 @@ DEFAULT_TRANSFORM_QUERY_TEMPLATE = PromptTemplate(
 
 
 
+# Define a workflow
+# Two StartEvents ( Create an Index, Set evn for retrieval)
 class CorrectiveRAGWorkflow(Workflow):
+
+    # ingest documents to the vectorstoreindex
     @step
     async def ingest(self, ctx: Context, ev: StartEvent) -> StopEvent | None:
         """Ingest step (for ingesting docs and initializing index)."""
@@ -128,6 +134,8 @@ class CorrectiveRAGWorkflow(Workflow):
 
         return StopEvent(result=index)
 
+
+    # set items that will commonly be used in context
     @step
     async def prepare_for_retrieval(self, ctx: Context, ev: StartEvent) -> PrepEvent | None:
         """Prepare for retrieval."""
