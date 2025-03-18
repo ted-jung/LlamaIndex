@@ -1,12 +1,13 @@
 # ===========================================================================
 # Crawl web with BeautifulSoup and do a query on LLM
 # Created: 19, Feb 2025
-# Updated: 21, Feb 2025
+# Updated: 18, Mar 2025
 # Writer: Ted, Jung
 # Description: 
 #   Scrap web page -> Indexing -> PromptTemplate -> Query
 # ===========================================================================
 
+from narwhals import String
 import streamlit as st
 import smtplib
 
@@ -25,39 +26,50 @@ from llama_index.core.settings import Settings
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.core import PromptTemplate
 
+from IPython.display import Markdown, display
+
+# define prompt viewing function
+def display_prompt_dict(prompts_dict):
+    for k, p in prompts_dict.items():
+        text_md = f"**Prompt Key**: {k}<br>" f"**Text:** <br>"
+        display(Markdown(text_md))
+        print(p.get_template())
+        display(Markdown("<br><br>"))
 
 
 # Do a Query to find what you want
-def ted_query(str_context, str_query, tone_name):
+def ted_query(str_context, str_query):
 
     Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5") 
     # Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5") 
     llm = OpenAI(model="gpt-4o-mini", timeout=720.0)
 
+    # print(str_context)
 
     # Creae a PromptTemplate
     qa_prompt_tmpl_str = """\
-        Context information is below.
+        You are an expert data analyst. You are given a list of job,country pairs. 
+        Your task is to extract the following information:
+
+        Context Input Data is below:
         ---------------------
         {context_str}
         ---------------------
-        Given the context(separated by comma) information and not prior knowledge, answer the query.
-        1. Total count at first line.
-        2. Make a table having five columns (seq, country, job position, counted job, continent).
-           Count job of role by each country and finally, grouping it by continent.
-        3. Show job for korea at the end.
-        4. Please write the answer in the style of {tone_name}
+
+        Given the context and not prior knowledge,
+        Answer the query.
+
         Query: {query_str}
-        Answer: \
+        Answer: 
     """
 
     # Mapping variables
     template_var_mappings = {
         "context_str": f"{str_context}", 
-        "query_str": f"{str_query}", 
-        "tone_name": f"{tone_name}"
+        "query_str": f"{str_query}"
     }
 
+    # Template and Variable
     prompt_tmpl = PromptTemplate(qa_prompt_tmpl_str, template_var_mappings)
     
     # Read documents to create an index to query
@@ -65,7 +77,10 @@ def ted_query(str_context, str_query, tone_name):
     documents = [my_document]
     ted_index = VectorStoreIndex.from_documents(documents)
 
-    answer_engine = ted_index.as_query_engine(llm = llm, prompt_tmpl=prompt_tmpl)
+    answer_engine = ted_index.as_query_engine(llm = llm, prompt_tmpl=prompt_tmpl, response_mode="compact")
+
+    display_prompt_dict(answer_engine.get_prompts())
+
     res = (answer_engine.query(str_query))
 
     return res
@@ -73,7 +88,7 @@ def ted_query(str_context, str_query, tone_name):
 
 
 # Get sources from the web using headless browser
-def ted_source_data(url):
+def ted_source_data(url) -> String:
 
     job_country_string = ""
     options = Options()
@@ -89,7 +104,7 @@ def ted_source_data(url):
     # CSS? replace with your web site
     try:
         element_present = EC.presence_of_element_located((By.CSS_SELECTOR, ".mb-16")) 
-        WebDriverWait(driver, 6).until(element_present) # Wait up to 3 seconds
+        WebDriverWait(driver, 10).until(element_present) # Wait up to 3 seconds
         html = driver.page_source                       # Get the updated HTML
         soup = BeautifulSoup(html, "html.parser")
 
@@ -99,7 +114,7 @@ def ted_source_data(url):
         for element1, element2 in zip(data_elements1, data_elements2):
             role = element1.text.strip()
             country = element2.text.strip()
-            job_country_string += f"Job: {role}, Country: {country} | "
+            job_country_string += f"Job:{role},Country:{country} | "
         
         return job_country_string
     
@@ -130,7 +145,7 @@ def email_to(message):
 
 # Main
 if __name__ == "__main__":
-
+    st.set_page_config(layout="wide")
     if st.button('Clear All Cache'):
         st.cache_data.clear()
         st.success('All cache cleared!')
@@ -138,14 +153,10 @@ if __name__ == "__main__":
     if st.button('Find Job'):    
         career_response = ted_source_data('https://clickhouse.com/company/careers')
 
-        # message = ted_query(career_response, "Given data has two fields(Job, Country). \
-        #                                       Count each job grouped by country, continent order. \
-        #                                       Make a table using five columns (seq, country(includes remote), name of job,count of job opened, continent order by country with alphabetical order. \
-        #                                       Summarize Korea's hiring status at the end", "Shakespeare")
-        message = ted_query(career_response, "Which country have which job?\n"
-                                             " 1. Total count at first line.\n"
-                                             " 2. Make a table having five columns (seq, country, job position, counted job, continent). order by country, continent\n"
-                                             " 3. Show job for korea at the end.", "Shakespeare")
+        message = ted_query(career_response, "Which job has posted for which country? \n"
+                                             "Make it into table having columns(job, country, the sum of job each country, continent) \n"
+                                             "Summarize the count of each country \n"
+                                             "Summarize Korea's hiring status at the end")
         st.write(message.response)
 
     # email_to(message)    
