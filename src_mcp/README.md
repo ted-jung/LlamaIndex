@@ -39,9 +39,11 @@ Suppose you're designing a chatbot that answers business questions.
 
 Using MCP, you would:
 
-Store past queries and answers for continuity.
-Retrieve relevant documents before querying the LLM.
-Format the prompt optimally 
+- Store past queries and answers for continuity.
+
+- Retrieve relevant documents before querying the LLM.
+
+- Format the prompt optimally 
 (e.g., “User asked about revenue trends. Retrieve sales data and summarize insights.”).
 
 Decide when to refresh context to avoid token overflow.
@@ -51,11 +53,11 @@ Decide when to refresh context to avoid token overflow.
 
 If you're working with LlamaIndex, MCP can be implemented by:
 
-1. Using memory modules to retain long-term context.
+1. Using **memory modules** to retain long-term context.
 
-2. Employing query transformations to dynamically adjust prompts.
+2. Employing **query transformations to dynamically adjust prompts**.
 
-3. Structuring retrieval logic to fetch the right context before an LLM call.
+3. **Structuring retrieval logic to fetch the right context** before an LLM call.
 
 
 
@@ -165,13 +167,13 @@ we can dynamically fetch context from external sources (APIs, databases, etc.), 
 
 This is how MCP works with Tools
 
-Memory: Stores past conversation history.
+- Memory: Stores past conversation history.
 
-Retrieval: Searches relevant documents.
+- Retrieval: Searches relevant documents.
 
-Tool Use: Calls the job market API dynamically when relevant.
+- Tool Use: Calls the job market API dynamically when relevant.
 
-LLM Query: Constructs an optimized prompt with structured context.
+- LLM Query: Constructs an optimized prompt with structured context.
 
 
 ### MCP with LlamaIndex Tools
@@ -286,9 +288,155 @@ will create a custom tool that fetch job market data from API
 
 ## Example3 - Enhance MCP (Model Context Protocol) pipeline with:
 
-Multiple tools – Fetch data from different sources `dynamically`
+- Multiple tools: Fetch data from different sources `dynamically`
 
-ClickHouse integration – Retrieve structured job analytics
+- ClickHouse integration: Retrieve structured job analytics
 
-Long-term memory – Persist key insights over multiple interactions
+- Long-term memory: Persist key insights over multiple interactions
 
+
+### Step1: Install Dependency
+
+```
+    > pip install llama-index llama-index-llms-openai openai clickhouse-connect
+```
+
+### Step2: Setup ClickHouse for Structured Data Retrieval
+
+➡️ Connect to ClickHouse
+
+```
+    import clickhouse_connect
+
+    # Connect to ClickHouse
+    client = clickhouse_connect.get_client(host='localhost', port=8123)
+
+    # Create a jobs table (if not exists)
+    client.command("""
+        CREATE TABLE IF NOT EXISTS job_market (
+            id UInt32,
+            country String,
+            job_title String,
+            job_count UInt32
+        ) ENGINE = MergeTree() ORDER BY id;
+    """)
+```
+
+➡️ Insert Sample Data
+
+```
+    client.command("""
+        INSERT INTO job_market VALUES 
+            (1, 'USA', 'Data Scientist', 1200),
+            (2, 'USA', 'AI Engineer', 950),
+            (3, 'Germany', 'Machine Learning Engineer', 700),
+            (4, 'India', 'Software Engineer', 5000);
+    """)
+```
+
+### Step3: Define tool for Exteranl API & ClickHouse
+
+```
+    from llama_index.tools import FunctionTool
+    import requests
+
+    # Tool: Fetch live job market trends
+    def fetch_job_market(country: str):
+        """Fetch job market trends from an external API."""
+        api_url = f"https://job-market-api.com/{country}"  # Fake API example
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            return response.json()
+        return {"error": "Failed to fetch data"}
+
+    job_market_tool = FunctionTool.from_defaults(fn=fetch_job_market)
+
+    # Tool: Query ClickHouse for job data
+    def query_clickhouse_job_data(country: str):
+        """Fetch job data from ClickHouse."""
+        query = f"SELECT job_title, job_count FROM job_market WHERE country = '{country}'"
+        result = client.query_df(query)
+        return result.to_dict(orient="records")  # Convert to structured output
+
+    clickhouse_tool = FunctionTool.from_defaults(fn=query_clickhouse_job_data)
+```
+
+### Step4: Setup MCP Query Engine
+
+```
+from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
+from llama_index.llms import OpenAI
+from llama_index.memory import ChatMemoryBuffer
+
+# Load documents (Simulating knowledge base)
+documents = SimpleDirectoryReader("data/").load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# Setup OpenAI LLM
+llm = OpenAI(model="gpt-4")
+service_context = ServiceContext.from_defaults(llm=llm)
+
+# Setup memory
+memory = ChatMemoryBuffer.from_defaults()
+
+def mcp_query(user_input):
+    """Implements MCP by managing memory, retrieval, and tools dynamically."""
+    
+    # Retrieve past conversation history
+    past_messages = memory.get()
+    memory_context = "\n".join([f"User: {msg.content}" for msg in past_messages[-3:]])  # Last 3 messages
+    
+    # Retrieve documents
+    retriever = index.as_retriever()
+    retrieved_docs = retriever.retrieve(user_input)
+    retrieved_text = "\n".join([doc.text[:300] for doc in retrieved_docs])  # First 300 chars per doc
+    
+    # Detect if the query is related to jobs
+    if "job" in user_input.lower() or "hiring" in user_input.lower():
+        country = "USA"  # Default country (modify as needed)
+        
+        # Fetch live job market data (API)
+        job_data_api = job_market_tool(country)
+        
+        # Query ClickHouse for structured job data
+        job_data_db = clickhouse_tool(country)
+        
+        job_market_context = f"API Data: {job_data_api}\nClickHouse Data: {job_data_db}"
+    else:
+        job_market_context = "No external job data needed."
+    
+    # Format the prompt with structured context
+    prompt = f"""
+    You are an AI assistant following the Model Context Protocol (MCP).
+    
+    Conversation History:
+    {memory_context}
+    
+    Retrieved Knowledge:
+    {retrieved_text}
+    
+    External Data (if applicable):
+    {job_market_context}
+    
+    User Query:
+    {user_input}
+    
+    Provide an insightful and well-structured response.
+    """
+    
+    # Query LLM
+    response = llm.complete(prompt)
+    
+    # Update memory
+    memory.put(user_input, response.text)
+    
+    return response.text
+```
+
+### Step5: Test MCP Query Engine
+
+```
+    user_input = "What are the latest job trends in the USA?"
+    response = mcp_query(user_input)
+    print(response)
+```
