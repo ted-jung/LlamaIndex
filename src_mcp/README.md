@@ -4,7 +4,7 @@ MCP is an open protocol that standardizes how applications provide context to LL
 MCP provides a standardized way to connect AI models to different data sources and tools.
 Model Context Protocol (MCP) is indeed a methodology for structuring interactions with Large Language Models (LLMs) by systematically managing context. It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
 
-# Key Aspects of MCP (Model Context Protocol)
+## Key Aspects of MCP (Model Context Protocol)
 MCP provides a framework for:
 
 Defining Context Windows – Ensuring relevant history and knowledge are included in prompts.
@@ -17,7 +17,7 @@ Adaptive Prompting – Structuring interactions dynamically based on user intent
 
 Multi-Agent Interactions – Coordinating between multiple LLMs or sub-models.
 
-# How MCP Works in LLM Interactions
+## How MCP Works in LLM Interactions
 
 Prompt Engineering: Formatting the input prompt to include the right mix of user queries, past context, and retrieved knowledge.
 
@@ -26,22 +26,23 @@ Memory Handling: Deciding what historical interactions or knowledge should persi
 Knowledge Injection: Using RAG (Retrieval-Augmented Generation) to fetch relevant context from databases, wikis, or documents.
 
 Execution Protocol: Structuring how LLMs interact with APIs, databases, and users dynamically.
-Example: MCP in Action
 
 
-# Use Case
+## MCP in Action
 
 Suppose you're designing a chatbot that answers business questions.
+
 Using MCP, you would:
 
 Store past queries and answers for continuity.
 Retrieve relevant documents before querying the LLM.
-Format the prompt optimally (e.g., “User asked about revenue trends. Retrieve sales data and summarize insights.”).
+Format the prompt optimally 
+(e.g., “User asked about revenue trends. Retrieve sales data and summarize insights.”).
 
 Decide when to refresh context to avoid token overflow.
 
 
-# MCP & LlamaIndex
+## MCP & LlamaIndex 🚀
 
 If you're working with LlamaIndex, MCP can be implemented by:
 
@@ -51,7 +52,6 @@ If you're working with LlamaIndex, MCP can be implemented by:
 
 3. Structuring retrieval logic to fetch the right context before an LLM call.
 
-Would you like to see a practical code implementation of MCP with LlamaIndex? 🚀
 
 
 # MCP Implementation Overview
@@ -71,7 +71,6 @@ Would you like to see a practical code implementation of MCP with LlamaIndex? �
 
 ```
     > pip install llama-index llama-index-llms-openai openai
-
 ```
 
 
@@ -100,13 +99,13 @@ Would you like to see a practical code implementation of MCP with LlamaIndex? �
 
 ### MCP Query Pipeline
 
-Retrieve past conversation memory
+✅ Retrieve past conversation memory
 
-Fetch relevant knowledge from index
+✅ Fetch relevant knowledge from index
 
-Format the prompt dynamically
+✅ Format the prompt dynamically
 
-Query LLM with optimized context
+✅ Query LLM with optimized context
 
 ```
     def mcp_query(user_input):
@@ -149,9 +148,9 @@ Query LLM with optimized context
 ### Test MCP Workflow
 
 ```
-user_input = "What are the latest hiring trends in AI?"
-response = mcp_query(user_input)
-print(response)
+    user_input = "What are the latest hiring trends in AI?"
+    response = mcp_query(user_input)
+    print(response)
 ```
 
 
@@ -169,16 +168,18 @@ LLM Query: Constructs an optimized prompt with structured context.
 
 ### MCP with LlamaIndex Tools
 
-We'll use: 
 ✅ Memory – Maintain past interactions
+
 ✅ Retrieval – Search relevant documents
+
 ✅ Tools – Query external APIs dynamically
+
 ✅ LLM Query – Generate responses with structured context
 
 #### Step1: Install Dependency
 
 ```
-pip install llama-index llama-index-llms-openai openai
+    > pip install llama-index llama-index-llms-openai openai
 ```
 
 #### Step2: Define Context & Tools
