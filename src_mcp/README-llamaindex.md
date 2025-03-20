@@ -18,7 +18,7 @@ In LlamaIndex, use the adapter to get tools, and then use the agent to call the 
 See [llamaindex_mcp_example.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/llamaindex_mcp_example.py) for reference.
 
 
-[Diagram](../images/mcp_adapter.png)
+![Diagram](../images/mcp_adapter.png)
 
 #### How to convert MCP tool into LlamaIndex tool
 
