@@ -1,24 +1,24 @@
 # Implementation 
 
 
-![Good Example](https://psiace.me/posts/integrate-mcp-tools-into-llamaindex/)
+[Example from PsiACE](https://psiace.me/posts/integrate-mcp-tools-into-llamaindex/)
 
 Implementing the conversion of MCP tools to LlamaIndex tools mainly includes the following steps:
 
 #### Communicate with MCP server:
 Establish a connection with the MCP server using the MCPClient class, at least support list_tools and call_tool methods.
-See ![mcp_client.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/mcp_client.py) for reference.
+See [mcp_client.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/mcp_client.py) for reference.
 
 #### Construct adapter:
 Define the MCPToolAdapter class, which uses the MCPClient’s list_tools method to get the tool list and uses the FunctionTool.from_defaults method in LlamaIndex to wrap each MCP tool into a LlamaIndex tool.
-See ![llamaindex_mcp_adapter.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/llamaindex_mcp_adapter.py) for reference.
+See [llamaindex_mcp_adapter.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/llamaindex_mcp_adapter.py) for reference.
 
 #### Use the adapter in LlamaIndex:
 In LlamaIndex, use the adapter to get tools, and then use the agent to call the tools.
-See ![llamaindex_mcp_example.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/llamaindex_mcp_example.py) for reference.
+See [llamaindex_mcp_example.py](https://github.com/psiace/psiace/tree/main/demo/llamaindex-mcp-adapter/llamaindex_mcp_example.py) for reference.
 
 
-![Diagram](../images/mcp_adapter.png)
+[Diagram](../images/mcp_adapter.png)
 
 #### How to convert MCP tool into LlamaIndex tool
 
