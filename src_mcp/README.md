@@ -8,7 +8,7 @@ MCP is indeed a methodology for structuring interactions with Large Language Mod
 
 It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
 
-## Key Aspects of MCP (Model Context Protocol)
+## Key Aspects of MCP
 MCP provides a framework for:
 
 Defining Context Windows – Ensuring relevant history and knowledge are included in prompts.
@@ -60,7 +60,7 @@ If you're working with LlamaIndex, MCP can be implemented by:
 
 # MCP Implementation Overview
 
-## Overall (example1 - datasource)
+## Example1 - datasource
 
 1. Store and manage context with a persistent index.
 
@@ -158,15 +158,18 @@ If you're working with LlamaIndex, MCP can be implemented by:
 ```
 
 
-## Overall (example2 - using tools)
+## Example2 - using tools
 
 we can dynamically fetch context from external sources (APIs, databases, etc.), making interactions more adaptive and context-aware.
 
 This is how MCP works with Tools
 
 Memory: Stores past conversation history.
+
 Retrieval: Searches relevant documents.
+
 Tool Use: Calls the job market API dynamically when relevant.
+
 LLM Query: Constructs an optimized prompt with structured context.
 
 
