@@ -1,8 +1,12 @@
 # MCP
 
 MCP is an open protocol that standardizes how applications provide context to LLMs.
+
 MCP provides a standardized way to connect AI models to different data sources and tools.
-Model Context Protocol (MCP) is indeed a methodology for structuring interactions with Large Language Models (LLMs) by systematically managing context. It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
+
+Model Context Protocol (MCP) is indeed a methodology for structuring interactions with Large Language Models (LLMs) by systematically managing context. 
+
+It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
 
 ## Key Aspects of MCP (Model Context Protocol)
 MCP provides a framework for:
