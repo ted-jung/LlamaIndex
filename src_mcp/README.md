@@ -6,7 +6,7 @@ MCP provides a standardized way to connect AI models to different data sources a
 
 MCP is indeed a methodology for structuring interactions with Large Language Models (LLMs) by systematically managing context. 
 
-![mcp diagram](../images/mcp.png)
+![mcp diagram](../images/mcp.png?raw=true)
 
 It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
 
