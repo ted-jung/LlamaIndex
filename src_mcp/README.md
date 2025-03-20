@@ -10,8 +10,7 @@ MCP is indeed a methodology for structuring interactions with Large Language Mod
 
 It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
 
-## Key Aspects of MCP
-MCP provides a framework for:
+**MCP provides a framework for:**
 
 Defining Context Windows – Ensuring relevant history and knowledge are included in prompts.
 
