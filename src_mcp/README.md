@@ -6,6 +6,8 @@ MCP provides a standardized way to connect AI models to different data sources a
 
 MCP is indeed a methodology for structuring interactions with Large Language Models (LLMs) by systematically managing context. 
 
+![mcp diagram](../images/mcp.png)
+
 It defines how prompts, memory, retrieval, and updates should be handled to ensure coherent, efficient, and structured interactions with LLMs.
 
 ## Key Aspects of MCP
@@ -282,3 +284,12 @@ will create a custom tool that fetch job market data from API
     response = mcp_query(user_input)
     print(response)
 ```
+
+## Example3 - Enhance MCP (Model Context Protocol) pipeline with:
+
+Multiple tools – Fetch data from different sources `dynamically`
+
+ClickHouse integration – Retrieve structured job analytics
+
+Long-term memory – Persist key insights over multiple interactions
+
