@@ -18,7 +18,7 @@ It defines how prompts, memory, retrieval, and updates should be handled to ensu
 
 > Memory Management – Deciding what past interactions should persist and how they should be formatted.
 
-> **Adaptive Prompting – Structuring interactions dynamically based on user intent and prior conversation history.**
+> **Adaptive Prompting – Structuring interactions dynamically based on <ins>user intent</ins> and prior conversation history.**
 
 > Multi-Agent Interactions – Coordinating between multiple LLMs or sub-models.
 
