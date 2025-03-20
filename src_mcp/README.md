@@ -15,12 +15,16 @@ It defines how prompts, memory, retrieval, and updates should be handled to ensu
 > [!TIP]
 > Defining Context Windows – Ensuring relevant history and knowledge are included in prompts.
 
+> [!TIP]
 > Retrieval & Augmentation – Efficiently pulling in data from external sources like vector databases (e.g., LlamaIndex, LangChain).
 
+> [!TIP]
 >Memory Management – Deciding what past interactions should persist and how they should be formatted.
 
+> [!TIP]
 >Adaptive Prompting – Structuring interactions dynamically based on user intent and prior conversation history.
 
+> [!TIP]
 >Multi-Agent Interactions – Coordinating between multiple LLMs or sub-models.
 
 ## How MCP Works in LLM Interactions
