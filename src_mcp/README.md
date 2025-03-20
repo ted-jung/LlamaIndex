@@ -12,15 +12,12 @@ It defines how prompts, memory, retrieval, and updates should be handled to ensu
 
 **MCP provides a framework for:**
 
-Defining Context Windows – Ensuring relevant history and knowledge are included in prompts.
-
-Retrieval & Augmentation – Efficiently pulling in data from external sources like vector databases (e.g., LlamaIndex, LangChain).
-
-Memory Management – Deciding what past interactions should persist and how they should be formatted.
-
-Adaptive Prompting – Structuring interactions dynamically based on user intent and prior conversation history.
-
-Multi-Agent Interactions – Coordinating between multiple LLMs or sub-models.
+> [!TIP]
+> Defining Context Windows – Ensuring relevant history and knowledge are included in prompts.
+> Retrieval & Augmentation – Efficiently pulling in data from external sources like vector databases (e.g., LlamaIndex, LangChain).
+>Memory Management – Deciding what past interactions should persist and how they should be formatted.
+>Adaptive Prompting – Structuring interactions dynamically based on user intent and prior conversation history.
+>Multi-Agent Interactions – Coordinating between multiple LLMs or sub-models.
 
 ## How MCP Works in LLM Interactions
 
