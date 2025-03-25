@@ -1,11 +1,18 @@
-
+# =============================================================================
+# MCPAdapter
+# Created: 25, Mar 2025
+# Updated: 25, Mar 2025
+# Writer: Ted Jung
+# Description:
+#   It use MCPClient to get the list of tool, then 
+#                   turn it into llamaindex tool using FunctionTool
+# =============================================================================
 
 
 from typing import Any, Dict, List, Optional, Type
 from llama_index.core.tools import FunctionTool
 from mcp_client import MCPClient
 from pydantic import BaseModel, Field, create_model
-
 
 
 json_type_mapping: Dict[str, Type] = {
@@ -17,6 +24,7 @@ json_type_mapping: Dict[str, Type] = {
     "array": list
 }
 
+# converts input parameters into pydantic model
 def create_model_from_json_schema(schema: Dict[str, Any], model_name: str = "DynamicModel") -> Type[BaseModel]:
     properties = schema.get("properties", {})
     required_fields = set(schema.get("required", []))
@@ -38,7 +46,9 @@ def create_model_from_json_schema(schema: Dict[str, Any], model_name: str = "Dyn
     return dynamic_model
 
 
-    
+
+# MCPToolAdapter use MCPClient's function(list_tools)
+# : Wrap MCPTool into LlamaIndex Tool
 class MCPToolAdapter:
     def __init__(self, client: MCPClient):
         self.client = client
@@ -55,6 +65,7 @@ class MCPToolAdapter:
             for tool in response.tools
         ]
 
+    # implement the actual tool calling logic
     def _create_tool_fn(self, tool_name: str):
         async def tool_fn(**kwargs):
             return await self.client.call_tool(tool_name, kwargs)
