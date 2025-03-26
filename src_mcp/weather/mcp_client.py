@@ -85,13 +85,15 @@ class MCPClient:
             }
         ]
 
-        response = await self.session.list_tools()
+        # get list of tools
+        response_tool_list = await self.session.list_tools()
         available_tools = [{
-            "name": ted_tool.name,
-            "description": ted_tool.description,
-            "input_schema": ted_tool.inputSchema} for ted_tool in response.tools]
+            "name": tool.name,
+            "description": tool.description,
+            "input_schema": tool.inputSchema} for tool in response_tool_list.tools]
 
 
+        # provide tools for agents to be used
         response = self.anthropic.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1000,
@@ -145,12 +147,8 @@ class MCPClient:
 
 
     async def handle_user_message2(self, message_content: str, agent: ReActAgent):
-        print("here0")
         user_message = ChatMessage.from_str(role="user", content=message_content)
-        print("here1")
         response = await agent.achat(message=user_message.content)
-        print("here2")
-
         return response.response
 
 
@@ -189,6 +187,8 @@ class MCPClient:
                 logger.error("Error: %s", message)
                 continue
             logger.info("Received message from server: %s", message)
+
+
 
     @asynccontextmanager
     async def _run_session(self):
