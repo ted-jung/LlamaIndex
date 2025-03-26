@@ -53,6 +53,7 @@ class MCPToolAdapter:
     def __init__(self, client: MCPClient):
         self.client = client
 
+    # list available tools and wrap it into LlamaIndex tool using FunctionTool
     async def list_tools(self) -> List[FunctionTool]:
         response = await self.client.list_tools()
         return [
@@ -65,7 +66,7 @@ class MCPToolAdapter:
             for tool in response.tools
         ]
 
-    # implement the actual tool calling logic
+    # implement the actual tool calling (tool_name) logic
     def _create_tool_fn(self, tool_name: str):
         async def tool_fn(**kwargs):
             return await self.client.call_tool(tool_name, kwargs)
