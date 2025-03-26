@@ -4,7 +4,7 @@
 # Updated: 21, Mar 2025
 # Writer: Ted, Jung
 # Description: 
-#   MCP Server to retrieval weather forecast
+#   MCP Server to retrieval weather forecast having two mcp tools
 # =============================================================================
 
 from typing import Any
@@ -14,7 +14,12 @@ from mcp.server.fastmcp import FastMCP
 
 
 # Initialize FastMCP server
-mcp = FastMCP("weather")
+mcp = FastMCP(
+        name="weather",
+        host="127.0.0.1",
+        port=5000,
+        timeout=30
+    )
 
 
 
@@ -24,8 +29,8 @@ USER_AGENT = "weather-app/1.0"
 
 
 
-# helper function (querying, formatting the response from External Services)
-# NWS(National Weather Service)
+# Helper Function
+# : querying, formatting the response from External Services (NWS,National Weather Service)
 async def make_nws_request(url: str) -> dict[str, Any] | None:
     """Make a request to the NWS API with proper error handling."""
     headers = {
@@ -53,6 +58,10 @@ def format_alert(feature: dict) -> str:
     """
 
 
+# Define tools(decorator) with docstring and type hints
+# FastMCP: analyzes the docstring and type hints to automatically 
+#          generate the tool's schema
+#          -> tool name, description, input parameters
 
 @mcp.tool()
 async def get_alerts(state: str) -> str:
