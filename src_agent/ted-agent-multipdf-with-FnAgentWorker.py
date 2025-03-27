@@ -5,6 +5,7 @@
 # Writer: Ted, Jung
 # Description: ReAct agents, reasoning with multiple tools.
 #              RAG pipeline with HyDE over a document
+#  <notice> QueryPipelineAgentWorker - deprecated
 # =============================================================================
 
 
@@ -35,17 +36,13 @@ from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
 
 
-from IPython.display import Markdown, display
-
 from llama_index.core.agent import (
     Task, 
     AgentChatResponse, 
     ReActChatFormatter, 
-    QueryPipelineAgentWorker, 
     FnAgentWorker,
 )
 
-from llama_index.core.agent.types import Task
 
 from llama_index.core.agent.react.types import (
     ActionReasoningStep,
@@ -54,8 +51,6 @@ from llama_index.core.agent.react.types import (
 )
 
 from llama_index.core.agent.react.output_parser import ReActOutputParser
-from llama_index.core.query_pipeline import QueryPipeline as QP
-
 from llama_index.core.query_pipeline import (
     AgentInputComponent,
     AgentFnComponent,
@@ -65,10 +60,10 @@ from llama_index.core.query_pipeline import (
     InputComponent,
     Link,
     StatefulFnComponent,
+    QueryPipeline as QP
 )
 
-from typing import Dict, Any, Optional, Tuple, List, cast, Set
-
+from typing import Dict, Any, List
 
 
 
@@ -169,12 +164,10 @@ def agent_input_fn(state: Dict[str, Any]) -> Dict[str, Any]:
 
 
 
-agent_input_component = StatefulFnComponent(fn=agent_input_fn)
 
-
-# Define prompt function
-def react_prompt_fn(state: Dict[str, Any], input: str, tools: List[BaseTool]
-) -> List[ChatMessage]:
+# Define functions
+# - prompt function
+def react_prompt_fn(state: Dict[str, Any], input: str, tools: List[BaseTool]) -> List[ChatMessage]:
     
     task = state["task"]
 
@@ -187,28 +180,16 @@ def react_prompt_fn(state: Dict[str, Any], input: str, tools: List[BaseTool]
     )
 
 
-react_prompt_component = StatefulFnComponent(
-    fn=react_prompt_fn, partial_dict={"tools": query_engine_tools}
-)
-
-
-
-# Define agent output parser + Tool Pipeline
-def parse_react_output_fn(state: Dict[str, Any], chat_response: ChatResponse
-):
+# - output parser
+def parse_react_output_fn(state: Dict[str, Any], chat_response: ChatResponse):
     """Parse ReAct output into a reasoning step."""
     output_parser = ReActOutputParser()
     reasoning_step = output_parser.parse(chat_response.message.content)
     return {"done": reasoning_step.is_done, "reasoning_step": reasoning_step}
 
 
-parse_react_output = StatefulFnComponent(fn=parse_react_output_fn)
-
-
-
-def run_tool_fn(state: Dict[str, Any], reasoning_step: ActionReasoningStep
-):
-    
+# - 
+def run_tool_fn(state: Dict[str, Any], reasoning_step: ActionReasoningStep):
     task = state["task"]
 
     """Run tool and process tool output."""
@@ -229,11 +210,8 @@ def run_tool_fn(state: Dict[str, Any], reasoning_step: ActionReasoningStep
     return {"response_str": observation_step.get_content(), "is_done": False}
 
 
-run_tool = StatefulFnComponent(fn=run_tool_fn)
-
-
-def process_response_fn(state: Dict[str, Any], response_step: ResponseReasoningStep
-):
+# - Reasoning
+def process_response_fn(state: Dict[str, Any], response_step: ResponseReasoningStep):
     task = state["task"]
 
     """Process response."""
@@ -247,11 +225,8 @@ def process_response_fn(state: Dict[str, Any], response_step: ResponseReasoningS
     return {"response_str": response_str, "is_done": True}
 
 
-process_response = StatefulFnComponent(fn=process_response_fn)
-
-
-def process_agent_response_fn(state: Dict[str, Any], response_dict: dict
-):
+# - response
+def process_agent_response_fn(state: Dict[str, Any], response_dict: dict):
     """Process agent response."""
     return (
         AgentChatResponse(response_dict["response_str"]),
@@ -259,6 +234,12 @@ def process_agent_response_fn(state: Dict[str, Any], response_dict: dict
     )
 
 
+
+agent_input_component = StatefulFnComponent(fn=agent_input_fn)
+react_prompt_component = StatefulFnComponent(fn=react_prompt_fn, partial_dict={"tools": query_engine_tools})
+parse_react_output = StatefulFnComponent(fn=parse_react_output_fn)
+run_tool = StatefulFnComponent(fn=run_tool_fn)
+process_response = StatefulFnComponent(fn=process_response_fn)
 process_agent_response = StatefulFnComponent(fn=process_agent_response_fn)
 
 

@@ -5,6 +5,7 @@
 # Writer: Ted, Jung
 # Description: ReAct agents, reasoning with multiple tools.
 #              RAG pipeline with HyDE over a document
+#  <notice> QueryPipelineAgentWorker - deprecated
 # =============================================================================
 
 
@@ -12,8 +13,7 @@ import os
 import logging
 import sys
 import phoenix as px
-import llama_index.core
-
+import llama_index
 
 from llama_index.core import (
     VectorStoreIndex, 
@@ -34,6 +34,7 @@ from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
 
 
+from pyvis.network import Network
 from IPython.display import Markdown, display
 
 from llama_index.core.agent import (
@@ -45,6 +46,7 @@ from llama_index.core.agent import (
 )
 
 from llama_index.core.agent.types import Task
+from typing import Dict, Any, Optional, Tuple, List, cast, Set
 
 from llama_index.core.agent.react.types import (
     ActionReasoningStep,
@@ -53,8 +55,6 @@ from llama_index.core.agent.react.types import (
 )
 
 from llama_index.core.agent.react.output_parser import ReActOutputParser
-from llama_index.core.query_pipeline import QueryPipeline as QP
-
 from llama_index.core.query_pipeline import (
     AgentInputComponent,
     AgentFnComponent,
@@ -63,10 +63,8 @@ from llama_index.core.query_pipeline import (
     ToolRunnerComponent,
     InputComponent,
     Link,
+    QueryPipeline as QP
 )
-
-from typing import Dict, Any, Optional, Tuple, List, cast, Set
-
 
 
 
@@ -85,7 +83,7 @@ px.launch_app()
 llama_index.core.set_global_handler("arize_phoenix")
 
 
-# Load index stored previously
+# Load index which was stored previously to reuse it
 try:
     storage_context = StorageContext.from_defaults(persist_dir="./src_agent/storage/lyft")
     lyft_index = load_index_from_storage(storage_context)
@@ -117,10 +115,11 @@ uber_engine = uber_index.as_query_engine(similarity_top_k=3)
 
 
 hyde = HyDEQueryTransform(include_original=True)
-lyft_hyde_query_engine = TransformQueryEngine(lyft_engine, hyde)
-uber_hyde_query_engine = TransformQueryEngine(uber_engine, hyde)
+lyft_hyde_query_engine = TransformQueryEngine(lyft_engine, query_transform=hyde)
+uber_hyde_query_engine = TransformQueryEngine(uber_engine, query_transform=hyde)
 
 
+# build query engine tools
 query_engine_tools = [
     QueryEngineTool(
         query_engine=lyft_hyde_query_engine,
@@ -144,6 +143,9 @@ query_engine_tools = [
     ),
 ]
 
+
+
+
 ## Agent Input Component
 ## This is the component that produces agent inputs to the rest of the components
 ## Can also put initialization logic here.
@@ -164,9 +166,6 @@ def agent_input_fn(task: Task, state: Dict[str, Any]) -> Dict[str, Any]:
     return {"input": task.input}
 
 
-agent_input_component = AgentInputComponent(fn=agent_input_fn)
-
-
 # Define prompt function
 def react_prompt_fn(
     task: Task, state: Dict[str, Any], input: str, tools: List[BaseTool]
@@ -180,12 +179,6 @@ def react_prompt_fn(
     )
 
 
-react_prompt_component = AgentFnComponent(
-    fn=react_prompt_fn, partial_dict={"tools": query_engine_tools}
-)
-
-
-
 # Define agent output parser + Tool Pipeline
 def parse_react_output_fn(
     task: Task, state: Dict[str, Any], chat_response: ChatResponse
@@ -194,10 +187,6 @@ def parse_react_output_fn(
     output_parser = ReActOutputParser()
     reasoning_step = output_parser.parse(chat_response.message.content)
     return {"done": reasoning_step.is_done, "reasoning_step": reasoning_step}
-
-
-parse_react_output = AgentFnComponent(fn=parse_react_output_fn)
-
 
 
 def run_tool_fn(
@@ -220,9 +209,6 @@ def run_tool_fn(
     return {"response_str": observation_step.get_content(), "is_done": False}
 
 
-run_tool = AgentFnComponent(fn=run_tool_fn)
-
-
 def process_response_fn(
     task: Task, state: Dict[str, Any], response_step: ResponseReasoningStep
 ):
@@ -237,9 +223,6 @@ def process_response_fn(
     return {"response_str": response_str, "is_done": True}
 
 
-process_response = AgentFnComponent(fn=process_response_fn)
-
-
 def process_agent_response_fn(
     task: Task, state: Dict[str, Any], response_dict: dict
 ):
@@ -250,6 +233,12 @@ def process_agent_response_fn(
     )
 
 
+
+agent_input_component = AgentInputComponent(fn=agent_input_fn)
+react_prompt_component = AgentFnComponent(fn=react_prompt_fn, partial_dict={"tools": query_engine_tools})
+parse_react_output = AgentFnComponent(fn=parse_react_output_fn)
+run_tool = AgentFnComponent(fn=run_tool_fn)
+process_response = AgentFnComponent(fn=process_response_fn)
 process_agent_response = AgentFnComponent(fn=process_agent_response_fn)
 
 
@@ -261,7 +250,7 @@ qp.add_modules(
     {
         "agent_input": agent_input_component,
         "react_prompt": react_prompt_component,
-        "llm": Ollama(model="llama3.2"),
+        "llm": Ollama(model="gpt-4o-mini"),
         "react_output_parser": parse_react_output,
         "run_tool": run_tool,
         "process_response": process_response,
@@ -291,7 +280,6 @@ qp.add_link("run_tool", "process_agent_response")
 
 
 # visualize the query pipeline
-from pyvis.network import Network
 net = Network(notebook=True, cdn_resources="in_line", directed=True)
 net.from_nx(qp.clean_dag)
 print(net)

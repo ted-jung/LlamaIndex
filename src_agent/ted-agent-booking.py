@@ -1,37 +1,37 @@
-# ================================================================
+# =============================================================================
 # Agent for booking during chatting
 # Created: 22, Jan 2025
 # Updated: 11, Feb 2025
 # Writer: Ted, Jung
-# Description: Booking agent(FunctionCallingagent) with functiontool
-# ================================================================
+# Description: Booking agent(FunctionCallingAgent) with functiontool
+# =============================================================================
 
 
 
-from llama_index.core import Settings
+from typing import Optional
+
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
-from typing import Optional
-from llama_index.core.tools import FunctionTool
+
 from llama_index.core.bridge.pydantic import BaseModel
-
-
+from llama_index.core import Settings
+from llama_index.core.tools import FunctionTool
 from llama_index.core.llms import ChatMessage
 from llama_index.core.agent import FunctionCallingAgent
 
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-# llm = Ollama(model="llama3.3", request_timeout=720.0)
 llm = OpenAI(model="gpt-4o-mini", request_timeout=720.0)
+# llm = Ollama(model="llama3.3", request_timeout=720.0)
 Settings.llm = llm
 
-# we will store booking under random IDs
+
+# Will store booking under random IDs
 bookings = {}
 
 
-
-# we will represent and track the state of a booking as a Pydantic model
+# Represent and Track the state of a booking as a Pydantic model
 class Booking(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
@@ -40,6 +40,8 @@ class Booking(BaseModel):
     time: Optional[str] = None
 
 
+
+# Define functions 
 def get_booking_state(user_id: str) -> str:
     """Get the current state of a booking for a given booking ID."""
     try:
@@ -89,20 +91,16 @@ def confirm_booking(user_id: str) -> str:
 
 
 
-# create tools for each function
+# Create FunctionTool with pre-defined function having the option return_direct=True
 get_booking_state_tool = FunctionTool.from_defaults(fn=get_booking_state)
 update_booking_tool = FunctionTool.from_defaults(fn=update_booking)
-create_booking_tool = FunctionTool.from_defaults(
-    fn=create_booking, return_direct=True
-)
-cancel_booking_tool=FunctionTool.from_defaults(
-    fn=cancel_booking, return_direct=True
-)
-confirm_booking_tool = FunctionTool.from_defaults(
-    fn=confirm_booking, return_direct=True
-)
+create_booking_tool = FunctionTool.from_defaults(fn=create_booking, return_direct=True)
+cancel_booking_tool = FunctionTool.from_defaults(fn=cancel_booking, return_direct=True)
+confirm_booking_tool = FunctionTool.from_defaults(fn=confirm_booking, return_direct=True)
+
 
 user = "Ted Jung"
+
 
 prefix_messages = [
     ChatMessage(
@@ -115,6 +113,8 @@ prefix_messages = [
         ),
     ),
 ]
+
+
 
 agent = FunctionCallingAgent.from_tools(
     tools=[
@@ -132,12 +132,10 @@ agent = FunctionCallingAgent.from_tools(
 )
 
 
+
 # response = agent.chat("Hello! I'm Ted Jung. I would like to make a booking, around 5pm?")
-
 # print(str(response))
-
 # response = agent.chat("Sure! My name is Ted Jung, and my email is tedjung@gmail.com")
-
 # print(str(response))
 
 agent.chat_repl()
