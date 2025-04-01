@@ -48,12 +48,13 @@ def create_model_from_json_schema(schema: Dict[str, Any], model_name: str = "Dyn
 
 
 # MCPToolAdapter use MCPClient's function(list_tools)
-# : Wrap MCPTool into LlamaIndex Tool
+# : Wrap MCPTool into LlamaIndexTool
 class MCPToolAdapter:
     def __init__(self, client: MCPClient):
         self.client = client
 
     # list available tools and wrap it into LlamaIndex tool using FunctionTool
+    # bring all function list and convert it into LlamaIndex FunctionTool
     async def list_tools(self) -> List[FunctionTool]:
         response = await self.client.list_tools()
         return [
