@@ -17,10 +17,11 @@ from dotenv import load_dotenv
 from anthropic import Anthropic
 
 from contextlib import asynccontextmanager
+from urllib.parse import urlparse
+
 from mcp.client.session import ClientSession
 from mcp.client.sse import sse_client
 from mcp.client.stdio import StdioServerParameters, stdio_client
-from urllib.parse import urlparse
 
 from llama_index.core.llms import ChatMessage
 from llama_index.core.agent import ReActAgent
@@ -152,7 +153,6 @@ class MCPClient:
         return response.response
 
 
-
     # add the chat loop and cleanup functionality
     async def chat_loop(self, agent):
         """Run an interactive chat loop"""
@@ -165,6 +165,7 @@ class MCPClient:
                 if query.lower() == 'quit':
                     break
 
+                # when use with anthrophic or LlamaIndex
                 # response = await self.process_query(query)
                 response = await self.handle_user_message2(query, agent)
 
