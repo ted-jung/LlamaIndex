@@ -30,15 +30,16 @@ You are an AI assistant. If you do not have any answer? then use general knowled
 """
 
 
-#   Need to wrap tool and convert it into LlamaIndex tool using FunctionTool
+# Need to wrap tool and convert it into LlamaIndex tool using FunctionTool
+# Let agent use it
 async def get_agent(adapter: MCPToolAdapter):
 
     tools = await adapter.list_tools()
     llm = OpenAI(model="gpt-4o-mini")
 
     agent = ReActAgent.from_tools(
-        llm=llm,
         tools=list(tools),
+        llm=llm,
         react_chat_formatter=ReActChatFormatter(
             system_header=SYSTEM_PROMPT + "\n" + REACT_CHAT_SYSTEM_HEADER,
         ),
@@ -62,13 +63,17 @@ async def main():
     )
 
     args = parser.parse_args()
-    
+
     if args.client_type == "sse":
         client = MCPClient("http://127.0.0.1:8000/sse")
     else:
         client = MCPClient(
             f"{curr_dir}/.venv/bin/python", [f"{curr_dir}/src_mcp/weather/mcp_server_weather.py", "--server_type", "stdio"]
         )
+
+    # In general, give MCP Client to app to know the element(Tool, Resource, Prompt). but, 
+    # There is no way to give pure tool to agent in LlamaIndex
+    # So, use adpater to give the list of tool to ReAct agent in LlamaIndex (FunctionTool to be used)
 
     adapter = MCPToolAdapter(client)
     agent = await get_agent(adapter)
