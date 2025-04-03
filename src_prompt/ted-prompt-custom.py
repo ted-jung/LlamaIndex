@@ -20,21 +20,16 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import (
     VectorStoreIndex,
     SimpleDirectoryReader,
-    load_index_from_storage,
-    StorageContext,
     Settings,
     PromptTemplate,
 )
 
 from llama_index.core.query_engine import (
     RouterQueryEngine,
-    FLAREInstructQueryEngine,
 )
-from llama_index.core.selectors import LLMMultiSelector
-from llama_index.core.evaluation import FaithfulnessEvaluator, DatasetGenerator
-from llama_index.core.postprocessor import LLMRerank
+from llama_index.core.evaluation import DatasetGenerator
 
-from IPython.display import Markdown, display
+from IPython.display import Markdown
 
 # setup sample router query engine
 from llama_index.core.tools import QueryEngineTool
