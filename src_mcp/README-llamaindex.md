@@ -80,3 +80,53 @@ class MCPToolAdapter:
 
         return tool_fn
 ```
+
+
+![McpToolSpec](../images/mcp_tool_spec.png)
+
+
+### With McpToolSpec
+
+MCPToolSpec is a class used within LlamaIndex's Modular Contextual Plugin (MCP) framework—introduced in LlamaIndex v0.10+—to describe tool specifications in a modular, composable way.
+
+Structured: Gives the LLM better guidance on what each tool does.
+
+Modular: You can compose multiple tools into a toolkit.
+
+Reusable: Makes it easy to share or swap tools in/out of agents.
+
+
+```
+    # First, Get SSE client
+    mcp_client = BasicMCPClient("http://localhost:8000/sse")
+    self.tool_spec = McpToolSpec(client=mcp_client)
+    tools = await self.tool_spec.to_tool_list_async()
+
+
+
+
+
+# Second, Create FunctionAgent
+async def get_react_agent2(tools) -> FunctionAgent:
+    """Create a FunctionAgent with ClickHouse tools"""
+
+    # Create FunctionAgent
+    agent = FunctionAgent(
+        name="Agent",
+        description="A Function agent that can call tools",
+        tools=tools,
+        llm=llm,
+        system_prompt=SYSTEM_PROMPT
+    )
+
+    return agent    
+
+
+
+
+
+...
+
+# Thrid, Call agent
+    agent = await get_function_agent(mcp_tools)
+```
