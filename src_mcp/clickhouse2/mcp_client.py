@@ -144,6 +144,20 @@ async def get_react_agent(tools) -> ReActAgent:
     return agent
 
 
+async def get_function_agent(tools) -> FunctionAgent:
+    """Create a FunctionAgent with ClickHouse tools"""
+
+    # Create FunctionAgent
+    agent = FunctionAgent(
+        name="Agent",
+        description="A Function agent that can call tools",
+        tools=tools,
+        llm=llm,
+        system_prompt=SYSTEM_PROMPT
+    )
+
+    return agent
+
 
 async def handle_user_message(message_content: str, agent: ReActAgent):
     user_message = ChatMessage.from_str(role="user", content=message_content)
@@ -160,6 +174,7 @@ async def main():
 
         # Create ReActAgent
         agent = await get_react_agent(mcp_tools)
+        #agent = await get_function_agent(mcp_tools)
         # agent_context = Context.from_defaults(agent=agent)
         # agent_context = Context(agent)
 
