@@ -128,9 +128,10 @@ def list_tables(database: str, like: str = None):
     return tables
 
 
-def execute_query(self, query: str):
+def execute_query(query: str):
+    client = create_clickhouse_client()
     try:
-        res = self.client.query(query, settings={"readonly": 1})
+        res = client.query(query, settings={"readonly": 1})
         column_names = res.column_names
         rows = []
         for row in res.result_rows:
