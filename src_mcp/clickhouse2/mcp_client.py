@@ -87,8 +87,11 @@ class MCPClickHouseClient():
         self.tool_spec = None
         self.exit_stack = AsyncExitStack()
 
-    async def connect(self) -> ReActAgent:
-        """Establish connection to MCP server"""
+
+    # async def connect(self) -> ReActAgent:
+    #     """Establish connection to MCP server"""
+    async def connect(self) -> List[FunctionTool]:
+        """Establish connection to MCP server and return list of available tools"""
         if self.connected:
             return
 
