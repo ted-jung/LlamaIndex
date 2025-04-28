@@ -4,10 +4,10 @@
 # Updated: 28, Apr 2025
 # Writer: Ted, Jung
 # Description: Agentic workflow for compliance checking
-#     1. define tools
-#     2. define agents (tools + system prompt + llm + handoff)
-#     3. define agent workflow (agents + root agent + initial state)
-#     4. run the workflow
+#     1. Parse the contract into a set of key clauses, 
+#     2. Match(Document: Guideline) it with relevant clauses from a guideline repository 
+#        : here, GDPR
+#     3. Produce a compliance summary.
 # =============================================================================
 
 
@@ -215,6 +215,8 @@ class ContractReviewWorkflow(Workflow):
             os.chmod(str(out_path), 0o0777)
         self.output_dir = out_path
 
+
+
     @step
     async def parse_contract(self, ctx: Context, ev: StartEvent) -> ContractExtractionEvent:
         # load output template file
@@ -256,6 +258,8 @@ class ContractReviewWorkflow(Workflow):
 
         return ContractExtractionEvent(contract_extraction=contract_extraction)
 
+
+
     @step
     async def dispatch_guideline_match(self, ctx: Context, ev: ContractExtractionEvent) -> MatchGuidelineEvent:
         """For each clause in the contract, find relevant guidelines.
@@ -263,11 +267,18 @@ class ContractReviewWorkflow(Workflow):
         Use a map-reduce pattern. 
         
         """
+
+        # set total number of clasues to be processed and the vendor name
+        # to be used in the workflow
         await ctx.set("num_clauses", len(ev.contract_extraction.clauses))
         await ctx.set("vendor_name", ev.contract_extraction.vendor_name)
         
+        # repeat the total number of clasues
+        # to return event via ctx.send_event insread of directly returning of event.
         for clause in ev.contract_extraction.clauses:
             ctx.send_event(MatchGuidelineEvent(clause=clause, vendor_name=ev.contract_extraction.vendor_name))
+
+
 
     @step
     async def handle_guideline_match(self, ctx: Context, ev: MatchGuidelineEvent) -> MatchGuidelineResultEvent:
@@ -287,9 +298,9 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
             )
         
         # extract from contract
-        prompt = ChatPromptTemplate.from_messages([
-            ("user", CONTRACT_MATCH_PROMPT)
-        ])
+        # this is a core of the compliacne check to predict the compliance of the contract clause
+        # against the guideline
+        prompt = ChatPromptTemplate.from_messages([("user", CONTRACT_MATCH_PROMPT)])
         compliance_output = await llm.astructured_predict(
             ClauseComplianceCheck,
             prompt,
@@ -302,16 +313,21 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
 
         return MatchGuidelineResultEvent(result=compliance_output)
 
+
+
     @step
     async def gather_guideline_match(self, ctx: Context, ev: MatchGuidelineResultEvent) -> GenerateReportEvent:
         """Handle matching clause against guideline."""
         num_clauses = await ctx.get("num_clauses")
+
+        # wait until all events(num_clauses) are collected
         events = ctx.collect_events(ev, [MatchGuidelineResultEvent] * num_clauses)
         if events is None:
             return
-
+        
+        # e.result is a list of ClauseComplianceCheck
+        # save all match results to file
         match_results = [e.result for e in events]
-        # save match results
         match_results_path = Path(
             f"{self.output_dir}/match_results.jsonl"
         )
@@ -319,8 +335,10 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
             for mr in match_results:
                 fp.write(mr.model_dump_json() + "\n")
             
-            
+        # create a GenerateReportEvent and return
         return GenerateReportEvent(match_results=[e.result for e in events])
+
+
 
     @step
     async def generate_output(self, ctx: Context, ev: GenerateReportEvent) -> StopEvent:
@@ -330,6 +348,7 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
         # if all clauses are compliant, return a compliant result
         non_compliant_results = [r for r in ev.match_results if not r.compliant]
 
+
         # generate compliance results string
         result_tmpl = """
 1. **Clause**: {clause}
@@ -337,6 +356,8 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
 3. **Compliance Status:** {compliance_status}
 4. **Notes:** {notes}
 """
+
+        # use string format method to format the string
         non_compliant_strings = []
         for nr in non_compliant_results:
             non_compliant_strings.append(
@@ -379,6 +400,7 @@ workflow = ContractReviewWorkflow(
 
 
 async def main():
+    # handler is an object which is refer to coroutine.
     handler = workflow.run(contract_path=f"{curr_dir}/src_adw/data/vendor_agreement.md")
     async for event in handler.stream_events():
         if isinstance(event, LogEvent):
@@ -387,6 +409,8 @@ async def main():
             else:
                 print(event.msg)
 
+    # wait for the response of coroutine
+    # response_dict is a dictionary which contains the result of the workflow.
     response_dict = await handler
     print(str(response_dict["report"]))
     print(response_dict["non_compliant_results"])
