@@ -59,7 +59,7 @@ qa_prompt_tmpl = (
 qa_prompt = PromptTemplate(qa_prompt_tmpl)
 
 
-# Refine a prompt
+# Refined a prompt
 refine_prompt_tmpl = (
     "The original query is as follows: {query_str}\n"
     "We have provided an existing answer: {existing_answer}\n"
@@ -82,6 +82,8 @@ refine_prompt = PromptTemplate(refine_prompt_tmpl)
 # 1. TreeSummarize: response builder
 #    : Repack the chunk from leaves to root (bottom-up approach)
 # 2. Refine: refine response
+#    : First prompt to get the initial node and do iteratively with consecutine nodes
+#      to refine it to finalize answer
 
 summarizer = TreeSummarize(verbose=True, summary_template=qa_prompt)
 
