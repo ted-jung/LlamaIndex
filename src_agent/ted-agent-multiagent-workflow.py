@@ -1,13 +1,14 @@
 # =============================================================================
 # AgentWorkflow to create multiple agents
 # Created: 22, Apr 2025
-# Updated: 22, Apr 2025
+# Updated: 30, Apr 2025
 # Writer: Ted, Jung
 # Description: Booking agent(FunctionCallingAgent) with functiontool
 #     1. define tools
 #     2. define agents (tools + system prompt + llm + handoff)
 #     3. define agent workflow (agents + root agent + initial state)
 #     4. run the workflow
+#     FunctionAgent (handoff manually), AgentWorkflow (automatic handoff)
 # =============================================================================
 
 
