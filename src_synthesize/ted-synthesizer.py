@@ -59,7 +59,7 @@ qa_prompt_tmpl = (
 qa_prompt = PromptTemplate(qa_prompt_tmpl)
 
 
-# Refined a prompt
+# a Refined prompt
 refine_prompt_tmpl = (
     "The original query is as follows: {query_str}\n"
     "We have provided an existing answer: {existing_answer}\n"
