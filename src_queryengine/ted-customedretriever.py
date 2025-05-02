@@ -1,6 +1,11 @@
+# =============================================================================
 # This is for hybrid search leveraging with customed retrivers
 # Date: 13, Jan 2025
+# Updated: 2, May 2025
 # Writer: Ted, Jung
+# Description:
+#   This is for hybrid search leveraging with customed retrivers
+# =============================================================================
 
 
 from llama_index.core import (
@@ -25,6 +30,7 @@ from llama_index.core.retrievers import (
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.ollama import Ollama
+from llama_index.llms.openai import OpenAI
 from llama_index.core.query_engine import RetrieverQueryEngine
 from typing import List
 
@@ -32,16 +38,20 @@ from typing import List
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 Settings.llm = Ollama(model="llama3.2", request_timeout=720.0)
 
-documents = SimpleDirectoryReader("./data/paul_graham/").load_data()
+
 documents = SimpleDirectoryReader("./data/paul_graham/").load_data()
 parser = SimpleNodeParser() 
 nodes = parser.get_nodes_from_documents(documents)
+
 
 storage_context = StorageContext.from_defaults()
 storage_context.docstore.add_documents(nodes)
 
 
-# Define Same Data(nodes) to Index(Vector, KeywordTable)
+# Define two indexes(VectorStoreIndex, SimpleKeywordTableIndex) with the Same Data
+# VectorStoreIndex: Perform the semantic search
+# SimpleKeywordTableIndex: Perform the keyword-based search
+
 vector_index = VectorStoreIndex(nodes)
 keyword_index = SimpleKeywordTableIndex(nodes, storage_context=storage_context)
 
@@ -91,7 +101,6 @@ class CustomeRetriever(BaseRetriever):
 # Plugin Retriever into Query Engine
 vector_retriever = VectorIndexRetriever(index=vector_index, similarity_top_k=2)
 keyword_retriever = KeywordTableSimpleRetriever(index=keyword_index)
-
 custom_retriever = CustomeRetriever(vector_retriever, keyword_retriever)
 
 response_synthesizer = get_response_synthesizer()
