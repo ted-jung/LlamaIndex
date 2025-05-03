@@ -1,10 +1,11 @@
 # =============================================================================
-# This is for hybrid search leveraging with customed retrivers
+# Hybrid retrieve
 # Date: 13, Jan 2025
 # Updated: 2, May 2025
 # Writer: Ted, Jung
 # Description:
-#   This is for hybrid search leveraging with customed retrivers
+#   customed retrivers
+#   leveraging with multiple retrivers (vector, keyword)
 # =============================================================================
 
 
@@ -36,7 +37,8 @@ from typing import List
 
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-Settings.llm = Ollama(model="llama3.2", request_timeout=720.0)
+#Settings.llm = Ollama(model="llama3.2", request_timeout=720.0)
+Settings.llm = OpenAI(model="gpt-4.1-nano")
 
 
 documents = SimpleDirectoryReader("./data/paul_graham/").load_data()
@@ -48,14 +50,15 @@ storage_context = StorageContext.from_defaults()
 storage_context.docstore.add_documents(nodes)
 
 
-# Define two indexes(VectorStoreIndex, SimpleKeywordTableIndex) with the Same Data
-# VectorStoreIndex: Perform the semantic search
-# SimpleKeywordTableIndex: Perform the keyword-based search
+# Define two indexes(VectorStoreIndex, SimpleKeywordTableIndex) on the Same Data
+# VectorStoreIndex for the semantic search
+# SimpleKeywordTableIndex for the keyword-based search
 
 vector_index = VectorStoreIndex(nodes)
 keyword_index = SimpleKeywordTableIndex(nodes, storage_context=storage_context)
 
 
+# Note
 # Define Custome Retriever (hybrid search: semantic search and keyword search)
 class CustomeRetriever(BaseRetriever):
     def __init__(
@@ -64,18 +67,18 @@ class CustomeRetriever(BaseRetriever):
         keyword_retriver: KeywordTableSimpleRetriever,
         mode: str = "AND",
     ) -> None:
-        
+
         """Init params."""
-        
+
         self._vector_retriever = vector_retriver
         self._keyword_retriever = keyword_retriver
-        
+
         if mode not in ("AND", "OR"):
             raise ValueError("Invalid mode.")
         self._mode = mode
         super().__init__()
-        
-    
+
+
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve nodes given query."""
         
@@ -95,8 +98,8 @@ class CustomeRetriever(BaseRetriever):
 
         retrieve_nodes = [combined_dict[rid] for rid in retrieve_ids]
         return retrieve_nodes
-    
-    
+
+
 
 # Plugin Retriever into Query Engine
 vector_retriever = VectorIndexRetriever(index=vector_index, similarity_top_k=2)
@@ -105,27 +108,38 @@ custom_retriever = CustomeRetriever(vector_retriever, keyword_retriever)
 
 response_synthesizer = get_response_synthesizer()
 
-# assemble query engine
+# assemble two retrievers as a query engine
+# "OR": any node retrieved by either the vector or keyword retriever
+# "AND": only includes nodes that are retrieved by both retrivers
 custom_query_engine = RetrieverQueryEngine(
     retriever=custom_retriever,
     response_synthesizer=response_synthesizer
 )
 
-# vector query engine
+# vector_retriever(semantic search)
 vector_query_engine = RetrieverQueryEngine(
     retriever=vector_retriever,
     response_synthesizer=response_synthesizer,
 )
 
-# keyword query engine
+# keyword_retriever(exact keyword matches)
 keyword_query_engine = RetrieverQueryEngine(
     retriever=keyword_retriever,
     response_synthesizer=response_synthesizer,
 )
 
 
-response = custom_query_engine.query(
+response1 = custom_query_engine.query(
     "What did the author do during his time at YC?"
 )
+print(response1, end="\n\n")
 
-print(response)
+response2 = vector_query_engine.query(
+    "What did the author do during his time at YC?"
+)
+print(response2, end="\n\n")
+
+response3 = keyword_query_engine.query(
+    "What did the author do during his time at YC?"
+)
+print(response3, end="\n\n")
