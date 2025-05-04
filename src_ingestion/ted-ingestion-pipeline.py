@@ -4,8 +4,8 @@
 # Updated: 22, Feb 2025
 # Writer: Ted, Jung
 # Description:
-#   Ingestion and Cache
-#   use docker run
+#   Ingestion to vectorstore with transformation using Cache for intermediate data
+#   use docker run for caching
 #   > docker run --name redis-vecdb -d -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
 #   load -> transform(cleaning,splitting,embedding) -> cache -> vectorstore
 # ===========================================================================
@@ -16,18 +16,18 @@ import re
 import clickhouse_connect
 
 from llama_index.core import Document, Settings
-from llama_index.core.schema import TransformComponent
+from llama_index.core import VectorStoreIndex
 from llama_index.core import SimpleDirectoryReader
 
-from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
+from llama_index.core.schema import TransformComponent
 from llama_index.core.ingestion import IngestionCache
-from llama_index.vector_stores.clickhouse import ClickHouseVectorStore
 from llama_index.core.ingestion import IngestionPipeline
-from llama_index.core import VectorStoreIndex
-
 from llama_index.core.node_parser import TokenTextSplitter
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
+from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
+from llama_index.vector_stores.clickhouse import ClickHouseVectorStore
+
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.openai import OpenAI
 
 
@@ -37,7 +37,6 @@ embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 
 
 # Create a client & VectorStore(ClickHouse)
-
 ch_client = clickhouse_connect.get_client(
     host="localhost",
     port=8123,
@@ -46,11 +45,13 @@ ch_client = clickhouse_connect.get_client(
     database="default",
 )
 vector_store = ClickHouseVectorStore(
-    ch_client, table="quickstart_index", embed_model=embed_model
+    ch_client, 
+    table="quickstart_index", 
+    embed_model=embed_model
 )
 
 
-# Define text_splitter & the textcleaner to be used when transforming In IngestPipeline
+# Define text_splitter & the textcleaner to be used in IngestPipeline when transforming
 
 text_splitter = TokenTextSplitter(chunk_size=512)
 
@@ -71,13 +72,19 @@ curr_dir = os.getcwd()
 documents = SimpleDirectoryReader(f"{curr_dir}/data/paul_graham/").load_data()
 
 
-# Integrates well with IngestPipeline
+
+# Define cache to be used during ingestion process
 # : caching of intermediate results during the ingestion process
 ingest_cache = IngestionCache(
     cache=RedisCache.from_host_and_port(host="127.0.0.1", port=6379),
     collection="my_test_cache",
 )
 
+
+
+# Define pipeline for transformation
+# Run a series of transformations on a set of nodes/documents
+# : return the set of transformed nodes/documents
 pipeline = IngestionPipeline(
     transformations=[TextCleaner(),text_splitter,embed_model],
     vector_store=vector_store,
