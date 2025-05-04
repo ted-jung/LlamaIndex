@@ -1,5 +1,5 @@
 # =============================================================================
-# Index - PropertyGraph
+# Index - PropertyGraph (New way to build knowledge graphs with LLM)
 # Created: 4, May 2025
 # Updated: 4, May 2025
 # Writer: Ted, Jung
@@ -58,7 +58,8 @@ graph_store = Neo4jPropertyGraphStore(
 )
 
 
-# Schema-Guided Extraction
+# a few options (Implicit Extraction, Free-Form Extraction, Schema-guided) 
+# example1, Schema-Guided Extraction
 entities = Literal["PERSON", "PLACE", "THING"]
 relations = Literal["PART_OF", "HAS", "IS_A"]
 schema = {
@@ -108,7 +109,5 @@ index = PropertyGraphIndex.from_existing(
 document = Document(text="LlamaIndex is great!")
 
 index.insert(document)
-
 nodes = index.as_retriever(include_text=False).retrieve("LlamaIndex")
-
 print(nodes[0].text)
