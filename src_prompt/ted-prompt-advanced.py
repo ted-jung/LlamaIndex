@@ -8,20 +8,23 @@
 # =============================================================================
  
 from llama_index.core import PromptTemplate, Settings, VectorStoreIndex
+from llama_index.core.schema import TextNode
 from llama_index.core.prompts import RichPromptTemplate
-from llama_index.llms.ollama import Ollama
+
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-from llama_index.core.schema import TextNode
+from llama_index.llms.ollama import Ollama
 from llama_index.llms.openai import OpenAI
 
+
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-llm = Ollama(model="llama3.2", request_timeout=720.0)
+# llm = Ollama(model="llama3.2", request_timeout=720.0)
+llm = OpenAI(model="gpt-4o-mini", request_timeout=720.0)
 Settings.llm = llm
 
 
 
-# 1. It is a partial prompt formatting
+# 1. It is a partial prompt formatting (to be filled in later)
 qa_prompt_tmpl_str = """\
 Context information is below.
 ---------------------
@@ -40,7 +43,7 @@ fmt_prompt = partial_prompt_tmpl.format(
     context_str="In this work, we develop and release Llama 2, a collection of pretrained and fine-tuned large language models (LLMs) ranging in scale from 7 billion to 70 billion parameters",
     query_str="How many params does llama 2 have",
 )
-print(fmt_prompt)
+print(f"{fmt_prompt}\n\n {"="}*50 \n\n")
 
 
 fmt_prompt = partial_prompt_tmpl.format_messages(

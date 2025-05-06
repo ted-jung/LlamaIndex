@@ -1,3 +1,16 @@
+# =============================================================================
+# AgentWorkflow to create multiple agents
+# Created: 22, Apr 2025
+# Updated: 22, Apr 2025
+# Writer: Ted, Jung
+# Description: Booking agent(FunctionCallingAgent) with functiontool
+#     1. define tools
+#     2. define agents (tools + system prompt + llm + handoff)
+#     3. define agent workflow (agents + root agent + initial state)
+#     4. run the workflow
+# =============================================================================
+
+
 import asyncio
 import os
 import nest_asyncio
@@ -26,6 +39,9 @@ async def create_async_browser():
     )
 
 
+# Create an async browser instance
+# PlaywrightToolSpec is a subclass of ToolSpec that provides a way to access url
+# resources using Playwright via async browser
 async_browser = asyncio.run(create_async_browser())
 
 

@@ -118,7 +118,10 @@ class Biography(BaseModel):
     name: str
     best_known_for: List[str]
     extra_info: str
+    age: int
 
+
+# Create pydantic model to structure response
 
 summarizer = TreeSummarize(
     verbose = True,
@@ -127,7 +130,9 @@ summarizer = TreeSummarize(
 )
 
 response = summarizer.get_response(
-    "who is Paul Graham?", [text], tone_name="a business memo"
+    query_str="who is Paul Graham?", 
+    text_chunks=[text], 
+    tone_name="a business memo"
 )
 
 print(str(response))

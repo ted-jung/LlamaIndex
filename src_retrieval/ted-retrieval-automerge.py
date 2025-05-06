@@ -6,6 +6,7 @@
 # Description:
 #   Work with HierarchicalNodeParser from a set of leaf nodes
 #   Consolidate potentially disparate (from smaller contexts into a larger context)
+#   Comparison base retriever and automergingretriever
 # =============================================================================
 
 

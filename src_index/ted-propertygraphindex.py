@@ -37,7 +37,8 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.indices.property_graph import SchemaLLMPathExtractor
 
 from llama_index.core import Document
-from typing import Literal
+from typing import Literal, List, Dict
+from pydantic import BaseModel, Field
 
 
 
@@ -47,39 +48,40 @@ Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 llm = OpenAI(model="gpt-4.1-nano")
 
 
-documents = SimpleDirectoryReader("./data/paul_graham/").load_data()
+docs = SimpleDirectoryReader("./data/paul_graham/").load_data()
 
 
 # Note: used to be `Neo4jPGStore`
 graph_store = Neo4jPropertyGraphStore(
     username="neo4j",
-    password="pwd",
+    password="neo4jneo4j",
     url="bolt://localhost:7687",
 )
 
 
 # a few options (Implicit Extraction, Free-Form Extraction, Schema-guided) 
 # example1, Schema-Guided Extraction
-entities = Literal["PERSON", "PLACE", "THING"]
-relations = Literal["PART_OF", "HAS", "IS_A"]
+entities = ["PERSON", "PLACE", "THING"]
+relations = ["PART_OF", "HAS", "IS_A"]
 schema = {
     "PERSON": ["PART_OF", "HAS", "IS_A"],
     "PLACE": ["PART_OF", "HAS"], 
     "THING": ["IS_A"],
 }
 
+kg_extractors=SchemaLLMPathExtractor(
+        llm=llm,
+        # possible_entities=entities,
+        # possible_relation_props=relations,
+        # kg_validation_schema=schema,
+        # strict=True,
+    )
+
+
 index = PropertyGraphIndex.from_documents(
-    documents,
+    docs,
+    kg_extractors=[kg_extractors],
     embed_model=HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5"),
-    kg_extractors=[
-        SchemaLLMPathExtractor(
-            llm=OpenAI(model="gpt-4.1-nano", temperature=0.0),
-            possible_entities=entities,
-            possible_relation_props=relations,
-            kg_validation_schema=schema,
-            strict=True,
-        )
-    ],
     property_graph_store=graph_store,
     show_progress=True,
 )

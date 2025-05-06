@@ -10,9 +10,11 @@ import logging
 import sys
 import phoenix as px
 import llama_index.core
+import phoenix as px
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+from pyvis.network import Network
+from llama_index.core.query_pipeline import QueryPipeline as QP
+
 
 from llama_index.core import (
     VectorStoreIndex, 
@@ -24,6 +26,7 @@ from llama_index.core import (
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.ollama import Ollama
+
 
 from llama_index.core.tools import BaseTool, QueryEngineTool, ToolMetadata
 from llama_index.core.callbacks import CallbackManager
@@ -61,6 +64,8 @@ from typing import Dict, Any, Optional, Tuple, List, cast, Set
 from llama_index.core.agent.react.output_parser import ReActOutputParser
 from llama_index.core.agent.types import Task
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 callback_manager = CallbackManager()
 
@@ -69,7 +74,7 @@ llm = Ollama(model="llama3.2", request_timeout=720.0)
 Settings.llm = llm
 Settings.callback_manager = callback_manager
 
-import phoenix as px
+
 px.launch_app()
 llama_index.core.set_global_handler("arize_phoenix")
 
@@ -243,7 +248,6 @@ process_agent_response = AgentFnComponent(fn=process_agent_response_fn)
 
 
 # build a query pipeline and let the agent have it
-from llama_index.core.query_pipeline import QueryPipeline as QP
 
 qp = QP(verbose=True)
 qp.add_modules(
@@ -282,7 +286,7 @@ qp.add_link("run_tool", "process_agent_response")
 
 
 # visualize the query pipeline
-from pyvis.network import Network
+
 net = Network(notebook=True, cdn_resources="in_line", directed=True)
 net.from_nx(qp.clean_dag)
 print(net)

@@ -22,13 +22,13 @@ from llama_index.core import Settings
 
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5") 
-Settings.llm = OpenAI(model="gpt-4o-mini")
+# Settings.llm = OpenAI(model="gpt-4o-mini")
 llm = OpenAI(model="gpt-4o-mini")
 
 
-# wikipediaReader, it returns List
-loader = WikipediaReader()
-documents = loader.load_data(
+# wikipediaReader, it returns List with data
+wiki_loader = WikipediaReader()
+documents = wiki_loader.load_data(
     pages=["OpenAI", "Sam Altman", "Mira Murati", "Emmett Shear"],
     auto_suggest=False,
 )
@@ -37,6 +37,8 @@ documents = loader.load_data(
 sentence_splitter = SentenceSplitter(chunk_size=1024)
 
 # Get the first 1024 tokens for each entity
+# Turn document into a list of nodes.
+# reason why we use sentence splitter is that the document is too long
 openai_node = sentence_splitter.get_nodes_from_documents([documents[0]])[0]
 sama_node = sentence_splitter.get_nodes_from_documents([documents[1]])[0]
 mira_node = sentence_splitter.get_nodes_from_documents([documents[2]])[0]
@@ -51,89 +53,105 @@ ResumeScreenerPack = download_llama_pack(
 )
 
 
-# Job description
+# Job Description
 meta_jd = """\
-Meta is embarking on the most transformative change to its business and technology in company history, 
-and our Machine Learning Engineers are at the forefront of this evolution. 
-By leading crucial projects and initiatives that have never been done before, 
-you have an opportunity to help us advance the way people connect around the world.
- 
-The ideal candidate will have industry experience working on a range of recommendation, classification, 
-and optimization problems. You will bring the ability to own the whole ML life cycle, 
-define projects and drive excellence across teams. 
-You will work alongside the world’s leading engineers and researchers to solve some of the most exciting 
-and massive social data and prediction problems that exist on the web.\
+We are looking for a technically savvy and business-minded solutions architect to deeply partner with our most strategic and high-impact platform customers, guiding them through application ideation, development, delivery, and scale to accelerate and maximize the value of what they build with our platform. You will have the opportunity to work on the most novel and creative use cases being built on our API, serving as a critical partner for collecting and delivering high fidelity feedback to Product and Research teams.\
 """
 
 
-# JD + Conditions
+# Criterias for screening for the job
 # Read PDF
 # Position for CA, SA
 st.write("# Position for CA, SA! 👋")
 resume_screener = ResumeScreenerPack(
     job_description=meta_jd,
     criteria=[
-        "2+ years of experience in one or more of the following areas: machine learning, recommendation systems, pattern recognition, data mining, artificial intelligence, or related technical field",
-        "Experience demonstrating technical leadership working with teams, owning projects, defining and setting technical direction for projects",
-        "Bachelor's degree in Computer Science, Computer Engineering, relevant technical field, or equivalent practical experience.",
+        "Deeply embed with our most strategic platform customers, serving as their technical thought partner in ideating and building novel applications on our API.",
+        "Proactively provide guidance to our customers on how to maximize business impact from their applications, accelerating their time to value.",
+        "Experiment and prototype solutions with and for your customers.",
+        "Forge and manage relationships with our customers’ leadership and stakeholders to ensure their application’s successful deployment and scale.",
+        "Contribute to our open-source developer and enterprise resources.",
+        "Scale the Solutions Architect function through sharing knowledge, codifying best practices, and publishing notebooks to our internal and external repositories.",
+        "Validate, synthesize, and deliver high-signal feedback to the Product and Research teams.",
+        "Use your expertise in programming with Python and Javascript.",
+        "Have 5+ years of technical consulting (or equivalent) experience.",
+        "Are proficient in Python and Javascript.",
+        "Built and/or delivered prototypes on top of our API platform.",
+        "Led complex technical projects and programs with many stakeholders.",
+        "Can proactively identify opportunities for maximizing our customers’ business value through leveraging the OpenAI API.",
+        "Own problems end-to-end, and are willing to pick up whatever knowledge you're missing to get the job done to ensure both your team and our customers succeed.",
+        "Have a humble attitude and an eagerness to help others with empathy.",
+        "Operate with high horsepower, are adept at frequent context switching and working on multiple projects at once with expansive ownership, and ruthlessly prioritize.",
+        "Thrive in dynamic environments and can navigate ambiguity with ease.",
     ],
+    llm=llm
 )
-response = resume_screener.run(resume_path="Ted-Resume.pdf")
+response = resume_screener.run(resume_path="/Users/tedj/Ted-person/Ted Personal/resume/OpenAI/Ted-Resume.pdf")
 
 for cd in response.criteria_decisions:
-    st.write("### CRITERIA DECISION")
+    st.write("##### CRITERIA DECISION")
     st.write(cd.reasoning)
     st.write(cd.decision)
 
-st.write("#### OVERALL REASONING ##### ")
+st.write("#### OVERALL REASONING")
 st.write(str(response.overall_reasoning))
 st.write(str(response.overall_decision))
 
 
-# Comparision
-resume_screener = ResumeScreenerPack(
-    job_description="We're looking to hire a front-end engineer",
-    criteria=[
-        "The individual needs to be experienced in front-end / React / Typescript"
-    ],
-)
-response = resume_screener.run(resume_path="Ted-Resume.pdf")
-print(str(response.overall_reasoning))
-print(str(response.overall_decision))
+# Comparision of Specific profiles
+# st.write("# Position for Front-end Engineer! 👋")
+# resume_screener = ResumeScreenerPack(
+#     job_description="We're looking to hire a front-end engineer",
+#     criteria=[
+#         "The individual needs to be experienced in front-end / React / Typescript"
+#     ],
+#     llm=llm
+# )
+# response = resume_screener.run(resume_path="/Users/tedj/Ted-person/Ted Personal/resume/OpenAI/Ted-Resume.pdf")
+# for cd in response.criteria_decisions:
+#     st.write("##### CRITERIA DECISION")
+#     st.write(cd.reasoning)
+#     st.write(cd.decision) 
+
+# st.write("#### OVERALL REASONING")
+# print(str(response.overall_reasoning))
+# print(str(response.overall_decision))
 
 
 
-st.write("# Position for CEO! 👋")
 # Job Description
-job_description = f"""\
-We're looking to hire a CEO for OpenAI.
+# st.write("# Position for CEO! 👋")
+# job_description = f"""\
+# We're looking to hire a CEO for OpenAI.
 
-Instead of listing a set of specific criteria, each "criteria" is instead a short biography of a previous CEO.\
+# Instead of listing a set of specific criteria, each "criteria" is instead a short biography of a previous CEO.\
 
-For each criteria/bio, outline if the candidate's experience matches or surpasses that of the candidate.
+# For each criteria/bio, outline if the candidate's experience matches or surpasses that of the candidate.
 
-Also, here's a description of OpenAI from Wikipedia: 
-{openai_node.get_content()}
-"""
+# Also, here's a description of OpenAI from Wikipedia: 
+# {openai_node.get_content()}
+# """
 
-profile_strs = [
-    f"Profile: {n.get_content()}" for n in [sama_node, mira_node, emmett_node]
-]
-
-
-resume_screener = ResumeScreenerPack(
-    job_description=job_description, criteria=profile_strs
-)
-
-response = resume_screener.run(resume_path="Ted-Resume.pdf")
-
-for cd in response.criteria_decisions:
-    st.write("### CRITERIA DECISION")
-    st.write(cd.reasoning)
-    st.write(cd.decision)
+# profile_strs = [
+#     f"Profile: {n.get_content()}" for n in [sama_node, mira_node, emmett_node]
+# ]
 
 
-st.write("#### OVERALL REASONING ##### ")
-st.write(str(response.overall_reasoning))
-st.write(str(response.overall_decision))
+# resume_screener = ResumeScreenerPack(
+#     job_description=job_description, 
+#     criteria=profile_strs,
+#     llm=llm
+# )
+
+# response = resume_screener.run(resume_path="/Users/tedj/Ted-person/Ted Personal/resume/OpenAI/Ted-Resume.pdf")
+
+# for cd in response.criteria_decisions:
+#     st.write("### CRITERIA DECISION")
+#     st.write(cd.reasoning)
+#     st.write(cd.decision)
+
+
+# st.write("#### OVERALL REASONING")
+# st.write(str(response.overall_reasoning))
+# st.write(str(response.overall_decision))
 
