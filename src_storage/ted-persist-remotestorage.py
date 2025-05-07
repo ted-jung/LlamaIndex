@@ -1,7 +1,7 @@
 # ===========================================================================
-# Persist index to Remote Store
+# Persist index to Remote Store over network
 # Created: 6, Feb 2025
-# Updated: 17, Feb 2025
+# Updated: 7, May 2025
 # Writer: Ted, Jung
 # Description: 
 #   1. prepare data
@@ -31,6 +31,10 @@ embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 llm = OpenAI(model="gpt-4o-mini", temperature=0.2)
 
 
+
+# TextNode was deprecated. Use Node from now on
+# This is for the legacy
+
 def textnode_to_document(textnode):
   """
   Converts a TextNode object to a Document object.
@@ -42,6 +46,7 @@ def textnode_to_document(textnode):
     A Document object with the text and metadata from the TextNode.
   """
   return Document(text=textnode.text, metadata=textnode.metadata)
+
 
 nodes = [
     TextNode(
@@ -114,7 +119,7 @@ nodes = [
 
 
 
-# Create a client to connect ClickHouse
+# Create a clickhouse client to connect to ClickHouse
 ch_client = clickhouse_connect.get_client(
     host="localhost",
     port=8123,
@@ -127,11 +132,12 @@ ch_client = clickhouse_connect.get_client(
 
 # Create VectorStore on Store(ClickHouse)
 # A utility container for storing nodes,indices, and vectors.
-# Turn nodes to documents
+# Turn nodes in list to documents
 # Create an index based on documents and persist it
 
 documents = [textnode_to_document(node) for node in nodes]
 
+# Create an empty table in ClickHouse
 vector_store = ClickHouseVectorStore(
     ch_client, 
     table="quickstart_index",
@@ -140,7 +146,11 @@ vector_store = ClickHouseVectorStore(
 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 index = VectorStoreIndex.from_documents(documents, storage_context=storage_context)
 
-storage_context.persist()
+# No need to use below lines to persist data when it works with CH (VectorStoreIndex)
+# it is being persisted during making index.
+# use below line when data in-memory or temporary files not like clickhouse.
+# index.storage_context.persist()
+# storage_context.persist() 
 
 
 query_engine = index.as_query_engine(
