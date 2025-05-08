@@ -1,11 +1,11 @@
 # =============================================================================
 # Hybrid retrieve
 # Date: 13, Jan 2025
-# Updated: 2, May 2025
+# Updated: 8, May 2025
 # Writer: Ted, Jung
 # Description:
-#   customed retrivers
-#   leveraging with multiple retrivers (vector, keyword)
+#   Comparison the type of retrievers
+#   customed,vector, keyword
 # =============================================================================
 
 
@@ -60,6 +60,7 @@ keyword_index = SimpleKeywordTableIndex(nodes, storage_context=storage_context)
 
 # Note
 # Define Custome Retriever (hybrid search: semantic search and keyword search)
+# It returns a set of nodes containing scores
 class CustomeRetriever(BaseRetriever):
     def __init__(
         self,
@@ -101,14 +102,19 @@ class CustomeRetriever(BaseRetriever):
 
 
 
-# Plugin Retriever into Query Engine
+# Define Multiple Retrievers
 vector_retriever = VectorIndexRetriever(index=vector_index, similarity_top_k=2)
 keyword_retriever = KeywordTableSimpleRetriever(index=keyword_index)
 custom_retriever = CustomeRetriever(vector_retriever, keyword_retriever)
 
+
+
+# Response Mode (Refine, CompactAndRefine,TreeSummarize, etc)
 response_synthesizer = get_response_synthesizer()
 
-# assemble two retrievers as a query engine
+
+
+# Assemble two retrievers in a query engine
 # "OR": any node retrieved by either the vector or keyword retriever
 # "AND": only includes nodes that are retrieved by both retrivers
 custom_query_engine = RetrieverQueryEngine(
