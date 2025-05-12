@@ -54,7 +54,7 @@ docs = SimpleDirectoryReader("./data/paul_graham/").load_data()
 # Note: used to be `Neo4jPGStore`
 graph_store = Neo4jPropertyGraphStore(
     username="neo4j",
-    password="neo4jneo4j",
+    password="pwd",
     url="bolt://localhost:7687",
 )
 
