@@ -85,7 +85,12 @@ A single index type cannot effectively strike an optimal balance across all thes
 |Feature	| Vector Store Index	| Summary Index (List Index)	| Tree Index	| Keyword Table Index	| Property Graph Index|
 |-----------|-----------------------|-------------------------------|---------------|-----------------------|---------------------|
 |Core Mechanism|Semantic search using embeddings|Sequential storage of nodes|Hierarchical tree structure with summarized parent nodes|Keyword to node mapping|Knowledge graph with labeled nodes and relationships|
-
+|Strengths|Semantic retrieval, unstructured data, scalability|Simplicity, sequential data, summarization|Efficient querying for hierarchical data, long text navigation|Fast keyword-based retrieval, exact matches|Rich relationship modeling, multi-hop reasoning, hybrid search|
+|Weaknesses|Potential for irrelevant results, performance in high-dimensional spaces|Inefficient for targeted queries in large datasets, limited relationship capture|Complex construction, querying strategy tuning needed|Limited semantic understanding, keyword quality dependent|Complex construction and querying, computationally intensive for large graphs|
+|Ideal Use Cases|Knowledge retrieval, question answering	Document summarization, sequential data analysis|Knowledge management, hierarchical FAQs, long document navigation|Legal document search, technical term search|Knowledge graph-based QA, entity relationship analysis, reasoning over structured data|
+|Querying Strategy	Embedding similarity|Sequential processing, embedding or keyword filtering|Tree traversal|Keyword matching|Graph traversal, keyword/synonym expansion, vector similarity, Cypher queries|
+|Construction|Automatic embedding generation|Simple sequential addition|Hierarchical summarization (often with LLM)|Keyword extraction|Entity and relationship extraction (often with LLM)|
+|Scalability|Relies on underlying vector store|Can be inefficient for large datasets|Depends on tree structure and query strategy|Depends on keyword diversity and distribution|Depends on graph database capabilities|
 
 #### Factors to Consider When Choosing an Index Type
 Selecting the most suitable index type in LlamaIndex is a critical decision that can significantly impact the performance and effectiveness of an LLM application. Several key factors should be carefully considered during this selection process.
