@@ -1,8 +1,11 @@
+# =============================================================================
 # Multi-PDF agent using Query pipelines and Hyde
 # Date: 15, Jan 2025
+# Updated: 14, May 2025
 # Writer: Ted, Jung
 # Description: Agents, reasoning with multiple tools.
 #       RAG pipeline with HyDE over a document
+# =============================================================================
 
 
 import os
@@ -10,7 +13,6 @@ import logging
 import sys
 import phoenix as px
 import llama_index.core
-import phoenix as px
 
 from pyvis.network import Network
 from llama_index.core.query_pipeline import QueryPipeline as QP
@@ -64,10 +66,15 @@ from typing import Dict, Any, Optional, Tuple, List, cast, Set
 from llama_index.core.agent.react.output_parser import ReActOutputParser
 from llama_index.core.agent.types import Task
 
+
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
+
+# To track, log, or modify the flow of operations during query execution, indexing, or retrieval. 
+# It provides a hook system that lets you observe or react to internal events.
 callback_manager = CallbackManager()
+
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 llm = Ollama(model="llama3.2", request_timeout=720.0)
@@ -78,6 +85,9 @@ Settings.callback_manager = callback_manager
 px.launch_app()
 llama_index.core.set_global_handler("arize_phoenix")
 
+
+# reload from the store (here, directory)
+# create two indexes
 try:
     storage_context = StorageContext.from_defaults(persist_dir="./src_agent/storage/lyft")
     lyft_index = load_index_from_storage(storage_context)
@@ -91,6 +101,7 @@ except Exception as e:
     index_loaded = False
     
 
+# create indexes if there is no stored indexes
 if not index_loaded:
     # load data
     lyft_docs = SimpleDirectoryReader(input_files=["./data/pdf/lyft/lyft_2021.pdf"]).load_data()
@@ -103,17 +114,21 @@ if not index_loaded:
     # persist index (no directory? it creats it)
     lyft_index.storage_context.persist(persist_dir="./src_agent/storage/lyft")
     uber_index.storage_context.persist(persist_dir="./src_agent/storage/uber")
-    
-    
+
+
+
+# turn index to engine for query or chat or retrieval    
 lyft_engine = lyft_index.as_query_engine(similarity_top_k=3)
 uber_engine = uber_index.as_query_engine(similarity_top_k=3)
 
 
+# Turn engine into QueryEngine
 hyde = HyDEQueryTransform(include_original=True)
 lyft_hyde_query_engine = TransformQueryEngine(lyft_engine, hyde)
 uber_hyde_query_engine = TransformQueryEngine(uber_engine, hyde)
 
 
+# Make a list of tools be choosen by agent according to question along with description
 query_engine_tools = [
     QueryEngineTool(
         query_engine=lyft_hyde_query_engine,
@@ -136,6 +151,8 @@ query_engine_tools = [
         ),
     ),
 ]
+
+
 
 ## Agent Input Component
 ## This is the component that produces agent inputs to the rest of the components
