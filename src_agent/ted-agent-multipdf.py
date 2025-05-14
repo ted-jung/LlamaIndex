@@ -4,7 +4,10 @@
 # Updated: 14, May 2025
 # Writer: Ted, Jung
 # Description: Agents, reasoning with multiple tools.
-#       RAG pipeline with HyDE over a document
+#              RAG pipeline with HyDE over a document
+# Note: Is becoming Obsolete, So, use Workflow which is modern replacement
+#       More powerful (supports decision-making and branching)
+#       Modular
 # =============================================================================
 
 
@@ -128,7 +131,7 @@ lyft_hyde_query_engine = TransformQueryEngine(lyft_engine, hyde)
 uber_hyde_query_engine = TransformQueryEngine(uber_engine, hyde)
 
 
-# Make a list of tools be choosen by agent according to question along with description
+# A query_engine tools which will be choosen by agent according to question using metadata
 query_engine_tools = [
     QueryEngineTool(
         query_engine=lyft_hyde_query_engine,
@@ -271,7 +274,7 @@ qp.add_modules(
     {
         "agent_input": agent_input_component,
         "react_prompt": react_prompt_component,
-        "llm": Ollama(model="llama3.2"),
+        "llm": llm,
         "react_output_parser": parse_react_output,
         "run_tool": run_tool,
         "process_response": process_response,
@@ -279,8 +282,10 @@ qp.add_modules(
     }
 )
 
+
 # link input to react prompt to parsed out response (either tool action/input or observation)
 qp.add_chain(["agent_input", "react_prompt", "llm", "react_output_parser"])
+
 
 # add conditional link from react output to tool call (if not done)
 qp.add_link(
@@ -289,6 +294,8 @@ qp.add_link(
     condition_fn=lambda x: not x["done"],
     input_fn=lambda x: x["reasoning_step"],
 )
+
+
 # add conditional link from react output to final response processing (if done)
 qp.add_link(
     "react_output_parser",
@@ -297,13 +304,13 @@ qp.add_link(
     input_fn=lambda x: x["reasoning_step"],
 )
 
+
 # whether response processing or tool output processing, add link to final agent response
 qp.add_link("process_response", "process_agent_response")
 qp.add_link("run_tool", "process_agent_response")
 
 
 # visualize the query pipeline
-
 net = Network(notebook=True, cdn_resources="in_line", directed=True)
 net.from_nx(qp.clean_dag)
 print(net)
