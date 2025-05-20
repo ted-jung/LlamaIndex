@@ -1,20 +1,37 @@
 # =============================================================================
 # AgentWorkflow to create multiple agents
 # Created: 22, Apr 2025
-# Updated: 22, Apr 2025
+# Updated: 20, May 2025
 # Writer: Ted, Jung
 # Description: Booking agent(FunctionCallingAgent) with functiontool
-#     1. define tools
-#     2. define agents (tools + system prompt + llm + handoff)
-#     3. define agent workflow (agents + root agent + initial state)
-#     4. run the workflow
+#     1. define tools(system prompt + llm + handoff)
+#     2. run the workflow
+#     3. handle agentstream
+# ---------
+#     It is a workflow that create an agent(FunctionAgent or ReActAgent) implicitly with listing tools
+#     by method"from_tools_or_functions" having LLM, system prompt, a list of tools
+#     PlaywrightToolSpec: a tool for automation of web browser
+#     AgentQLBrowserToolSpec: a tool for extracting data
+#     DuckDuckGoSearchToolSpec: a tool for searching
+#     Search-DuckDuckGo, Click link by Playwright, Extract info by AgentQl
+#     ag_workflow.run returns handler and treat this as event stream asynchronously
+#     check agentstream and print delta
+# ---------
+# Pros: simple code, easy to handle the action of agent
+# Cons: no agent definition, better to declare agent explicitly
 # =============================================================================
 
 
-import asyncio
 import os
+import asyncio
 import nest_asyncio
 
+
+
+# It's(agentql) designed to give your agents web browsing superpowers
+# in a structured, declarative way. (browse web as tool)
+# one more:
+# PlaywrightToolSpec: web browser automation capability
 
 from llama_index.tools.playwright.base import PlaywrightToolSpec
 from llama_index.tools.agentql import AgentQLBrowserToolSpec
@@ -54,13 +71,17 @@ playwright_agent_tool_list = [
 ]
 
 
-llm = OpenAI(model="gpt-4o")
+llm = OpenAI(model="gpt-4.1-nano")
 duckduckgo_search_tool = [
     tool for tool in DuckDuckGoSearchToolSpec().to_tool_list()
 
     if tool.metadata.name == "duckduckgo_full_search"
 ]
 agentql_browser_tool = AgentQLBrowserToolSpec(async_browser=async_browser)
+
+
+# Workflow for multiple agents with handoffs
+# required a list of tool which is prepared previously
 
 ag_workflow = AgentWorkflow.from_tools_or_functions(
     playwright_agent_tool_list
