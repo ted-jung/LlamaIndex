@@ -131,6 +131,7 @@ llm = OpenAI(model="gpt-4.1-nano", temperature=0)
 # --- 6. Initialize the Pydantic Output Parser ---
 # This parser will attempt to convert the LLM's raw text response into our Pydantic object.
 parser = PydanticOutputParser(output_cls=JobSummary)
+# parser = PydanticOutputParser(pydantic_schema=JobSummary)
 
 
 format_instructions_str = ""
@@ -156,6 +157,7 @@ Your output MUST be a JSON object that strictly adheres to the following Pydanti
 
 Ensure the 'count' field is an integer.
 """
+print(parser.get_format_string())
 
 qa_prompt_tmpl = PromptTemplate(
     qa_prompt_tmpl_str,
@@ -217,7 +219,7 @@ try:
     total_jobs = len(job_summary.jobs)
     total_count = sum(job.count for job in job_summary.jobs)
     print(f"Total unique job positions: {total_jobs}")
-    print(f"Total job count across all positions: {total_count}")
+    print(f"Total job count across all positions: {total_count} \n\n")
 except Exception as e:
     print("\nError: Response was not parsed into the expected Pydantic object.")
     print(f"Error details: {e}")
