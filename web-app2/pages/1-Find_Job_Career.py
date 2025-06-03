@@ -158,17 +158,13 @@ if __name__ == "__main__":
         message = ted_query(career_response, """
             Which job has posted for which country? 
             ## Output Direction. 
-            1 Make a summarized table with columns(Position, Country, Sum of Jobs, Continent). 
-            2 Show Asia position column with the same column of #1. 
-            3 Add Korea position at the end
-            
-            4 Summarized table (Position, sum of each position, Country)
+            1. Make a summarized table with columns(Position, Country, Sum of Jobs, Continent) by Continent. 
+            2. Make a summarized table group by Continent.
+            3. Show Korea position status at the end. 
+
             """
         )
-        # message = ted_query(career_response, "Which job has posted for which country? \n"
-        # "Make it into table having columns(job, country, the sum of job each country, continent) \n"
-        # "Summarize the count of each country \n"
-        # "Summarize Korea's hiring status at the end""")
+
         st.write(message.response)
 
     # email_to(message)    
