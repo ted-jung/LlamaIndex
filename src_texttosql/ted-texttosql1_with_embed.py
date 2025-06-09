@@ -18,6 +18,7 @@ from llama_index.core.llms import ChatMessage
 from llama_index.core.prompts.default_prompts import DEFAULT_TEXT_TO_SQL_PROMPT
 from llama_index.core.llms import ChatResponse
 
+
 from llama_index.core import (
     Settings,
     SQLDatabase, 
@@ -305,7 +306,7 @@ def index_all_tables(
 
             row_tups = cursor[1]['result']
 
-            # index each row, put into vector store index
+            # create list of nodes from DB
             nodes = [TextNode(text=str(t)) for t in row_tups]
 
             # put into vector store index (use OpenAIEmbeddings by default)
@@ -315,11 +316,11 @@ def index_all_tables(
             index.set_index_id("vector_index")
             index.storage_context.persist(f"./data/wiki/{table_index_dir}/{table_name}")
         else:
-            # rebuild storage context
+            # storage_context to set indexed data
             storage_context = StorageContext.from_defaults(
                 persist_dir=f"./data/wiki/{table_index_dir}/{table_name}"
             )
-            # load index
+            # load index from storage_context
             index = load_index_from_storage(
                 storage_context, index_id="vector_index"
             )

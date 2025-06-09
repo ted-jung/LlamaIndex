@@ -137,6 +137,12 @@ ch_client = clickhouse_connect.get_client(
 
 documents = [textnode_to_document(node) for node in nodes]
 
+# documents.append([Document(text="Ted is a genious person", metadata={
+#             "category": "Sports",
+#             "country": "Portugal",
+#             "gender": "male",
+#             "born": 1985,})])
+
 # Create an empty table in ClickHouse
 vector_store = ClickHouseVectorStore(
     ch_client, 

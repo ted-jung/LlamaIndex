@@ -10,9 +10,9 @@
 # ---------
 #     It is a workflow that create an agent(FunctionAgent or ReActAgent) implicitly with listing tools
 #     by method"from_tools_or_functions" having LLM, system prompt, a list of tools
-#     PlaywrightToolSpec: a tool for automation of web browser
-#     AgentQLBrowserToolSpec: a tool for extracting data
-#     DuckDuckGoSearchToolSpec: a tool for searching
+#     PlaywrightToolSpec       : a tool for automation of web browser
+#     AgentQLBrowserToolSpec   : a tool for extracting data
+#     DuckDuckGoSearchToolSpec : a tool for searching
 #     Search-DuckDuckGo, Click link by Playwright, Extract info by AgentQl
 #     ag_workflow.run returns handler and treat this as event stream asynchronously
 #     check agentstream and print delta
@@ -49,6 +49,7 @@ os.environ["OPENAI_API_KEY"]
 
 nest_asyncio.apply()
 
+llm = OpenAI(model="gpt-4.1-nano")
 
 async def create_async_browser():
     return await PlaywrightToolSpec.create_async_playwright_browser(
@@ -71,7 +72,6 @@ playwright_agent_tool_list = [
 ]
 
 
-llm = OpenAI(model="gpt-4.1-nano")
 duckduckgo_search_tool = [
     tool for tool in DuckDuckGoSearchToolSpec().to_tool_list()
 
@@ -80,8 +80,10 @@ duckduckgo_search_tool = [
 agentql_browser_tool = AgentQLBrowserToolSpec(async_browser=async_browser)
 
 
-# Workflow for multiple agents with handoffs
-# required a list of tool which is prepared previously
+
+# Workflow for multiple agents with handoffs capability
+# It is required a list of tool which is defined previously
+# It implicitly create an agent(either FunctionAgent or ReActAgent)
 
 ag_workflow = AgentWorkflow.from_tools_or_functions(
     playwright_agent_tool_list

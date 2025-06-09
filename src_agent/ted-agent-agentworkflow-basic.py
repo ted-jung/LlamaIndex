@@ -11,6 +11,7 @@ import os
 from xml.sax import handler
 
 
+from git import WorkTreeRepositoryUnsupported
 from tavily import AsyncTavilyClient
 from llama_index.llms.openai import OpenAI
 from llama_index.core.workflow import (
@@ -91,6 +92,14 @@ workflow3 = AgentWorkflow.from_tools_or_functions(
     system_prompt="You are a helpful assistant that can perform dangerous task.",
 )
 
+
+workflow4 = AgentWorkflow.from_tools_or_functions(
+    [dangerous_task],
+    llm=llm,
+    system_prompt="You are a helpful assistant that can perform dangerous task.",
+)
+
+
 # agent1 = FunctionAgent(name="agent1",tools=None)
 # agent2 = FunctionAgent(name="agent2",tools=None)
 # workflow4 = AgentWorkflow([agent1, agent2])
@@ -159,7 +168,10 @@ async def main():
         user_msg="I want to proceed with the dangerous task.", ctx=ctx
     )
 
+
+    # Human in the loop
     # handler: do two tasks
+    # use context to send back response to tool
     # 1. event streaming (asynchronous streaming)
     # 2. gather the results
     async for event in handler.stream_events():
@@ -174,5 +186,40 @@ async def main():
     # wait until to get the final output
     response = await handler
     print(str(response))
+
+
+
+    # JsonSerializer (when to use?)
+    handler = workflow4.run(user_msg="I want to proceed with the dangerous task.")
+    
+    input_ev = None
+    async for event in handler.stream_events():
+        if isinstance(event, InputRequiredEvent):
+            input_ev = event
+            break
+
+    
+    # save the context somewhere for later
+    ctx_dict = handler.ctx.to_dict(serializer=JsonSerializer())
+
+
+    # get the response from the user after 1 hour
+    response_str = input(input_ev.prefix).strip().lower()
+
+
+    # restore the workflow
+    restored_ctx = Context.from_dict(workflow4, ctx_dict, serializer=JsonSerializer())
+    handler = workflow4.run(ctx=restored_ctx)
+    handler.ctx.send_event(
+        HumanResponseEvent(
+            response=response_str,
+            user_name=input_ev.user_name,
+        )
+    )
+
+    response = await handler
+    print(str(response))
+
+
 
 asyncio.run(main())

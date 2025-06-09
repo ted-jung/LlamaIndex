@@ -5,7 +5,6 @@
 # Writer: Ted, Jung
 # Description: ReAct agents, reasoning with multiple tools.
 #              RAG pipeline with HyDE over a document
-#  <notice> QueryPipelineAgentWorker - deprecated
 # =============================================================================
 
 

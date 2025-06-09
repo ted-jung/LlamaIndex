@@ -6,6 +6,7 @@
 # Description:
 #   MCP Client using MCPToolSpec in LlamaIndex to get the list of tool
 #   using new module llama_index.tools.mcp
+#   1. Bring a list of tools and let agent have it.
 # =============================================================================
 
 

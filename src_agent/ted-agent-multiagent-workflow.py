@@ -21,14 +21,15 @@ from tavily import AsyncTavilyClient
 from llama_index.llms.openai import OpenAI
 from llama_index.core.workflow import Context
 
-from llama_index.core.agent.workflow import FunctionAgent, ReActAgent
-from llama_index.core.agent.workflow import AgentWorkflow
 from llama_index.core.agent.workflow import (
     AgentInput,
     AgentOutput,
     ToolCall,
     ToolCallResult,
     AgentStream,
+    FunctionAgent,
+    ReActAgent,
+    AgentWorkflow,
 )
 
 
@@ -38,6 +39,7 @@ llm = OpenAI(model="gpt-4o-mini")
 
 # Four tools(functions) to be used by the agent
 # Store state in the context object
+# will use Context to keep track of the previous state.
 
 async def search_web(query: str) -> str:
     """Useful for using the web to answer questions."""
@@ -137,21 +139,18 @@ agent_workflow = AgentWorkflow(
 
 async def main():
     handler = agent_workflow.run(
-    user_msg=(
+        user_msg=(
             "Write me a report on the LK99 superconductor."
             "Briefly describe the LK99, including the development status, the company who announced it, "
             "and which companies following it. and the potential impact on the semiconductor industry. "
             "Please provide a summary of the research notes and the report content. "
         )
     )
-    
+
     current_agent = None
     current_tool_calls = ""
     async for event in handler.stream_events():
-        if (
-            hasattr(event, "current_agent_name")
-            and event.current_agent_name != current_agent
-        ):
+        if (hasattr(event, "current_agent_name") and event.current_agent_name != current_agent):
             current_agent = event.current_agent_name
             print(f"\n{'='*50}")
             print(f"🤖 Agent: {current_agent}")
@@ -182,4 +181,7 @@ async def main():
     state = await handler.ctx.get("state")
     print(state["report_content"])
 
-asyncio.run(main())
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

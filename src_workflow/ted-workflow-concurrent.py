@@ -1,16 +1,18 @@
 # ===========================================================================
 # Working example of a workflow with parallel events
 # Created: 13, Mar 2025
-# Updated: 13, Mar 2025
+# Updated: 20, May 2025
 # Writer: Ted, Jung
 # Description: 
 #   handle the concurrent and parallel events
 #   events to events in steps
+#   context to share info between steps
 # ===========================================================================
 
 
 import asyncio
 import random 
+
 
 from llama_index.core.schema import TextNode, NodeWithScore
 from llama_index.core.workflow import (
@@ -79,7 +81,7 @@ class ParallelFlow(Workflow):
         return FinalEvent2(query=ev.query)
 
 
-    # wait one or more events to be collected
+    # wait until all events arrive and generate a list of events
     @step
     async def synthesize(self, ctx: Context, ev: FinalEvent|FinalEvent2) -> StopEvent | None:
 
@@ -117,4 +119,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

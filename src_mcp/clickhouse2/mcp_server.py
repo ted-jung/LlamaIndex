@@ -24,6 +24,7 @@ from mcp_env import ch_config
 from mcp.server.fastmcp import FastMCP
 
 
+
 MCP_SERVER_NAME = "mcp-clickhouse"
 
 # Configure logging
@@ -36,7 +37,9 @@ QUERY_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 atexit.register(lambda: QUERY_EXECUTOR.shutdown(wait=True))
 SELECT_QUERY_TIMEOUT_SECS = 30
 
+
 load_dotenv()
+
 
 deps = [
     "clickhouse-connect",
@@ -45,24 +48,54 @@ deps = [
     "pip-system-certs",
 ]
 
-mcp = FastMCP(MCP_SERVER_NAME, dependencies=deps)
 
+
+mcp = FastMCP(name=MCP_SERVER_NAME, dependencies=deps)
+
+
+def create_clickhouse_client():
+    client_config = ch_config.get_client_config()
+    # logger.info(
+    #     f"Creating ClickHouse client connection to {client_config['host']}:{client_config['port']} "
+    #     f"as {client_config['username']} "
+    #     f"(secure={client_config['secure']}, verify={client_config['verify']}, "
+    #     f"connect_timeout={client_config['connect_timeout']}s, "
+    #     f"send_receive_timeout={client_config['send_receive_timeout']}s)"
+    # )
+
+    try:
+        client = clickhouse_connect.get_client(**client_config)
+        # Test the connection
+        version = client.server_version
+        logger.info(f"Successfully connected to ClickHouse server version {version}")
+        return client
+    except Exception as e:
+        logger.error(f"Failed to connect to ClickHouse: {str(e)}")
+        raise
+
+
+
+client = create_clickhouse_client()
+
+
+
+# Decorator that registers a function as a tool & managed by MCP framework
+# Expose a python function as a callable tool within the MCP system
 
 
 @mcp.tool()
 def list_databases():
     """List available ClickHouse databases"""
-    client = create_clickhouse_client()
     logger.info("Listing all databases")
     result = client.command("SHOW DATABASES")
     logger.info(f"Found {len(result) if isinstance(result, list) else 1} databases")
     return result
 
 
+
 @mcp.tool()
 def list_tables(database: str, like: str = None):
     """List available ClickHouse tables in a database"""
-    client = create_clickhouse_client()
     logger.info(f"Listing tables in database '{database}'")
     query = f"SHOW TABLES FROM {quote_identifier(database)}"
     if like:
@@ -128,8 +161,8 @@ def list_tables(database: str, like: str = None):
     return tables
 
 
+
 def execute_query(query: str):
-    client = create_clickhouse_client()
     try:
         res = client.query(query, settings={"readonly": 1})
         column_names = res.column_names
@@ -146,6 +179,7 @@ def execute_query(query: str):
         # Return a structured dictionary rather than a string to ensure proper serialization
         # by the MCP protocol. String responses for errors can cause BrokenResourceError.
         return {"error": str(err)}
+
 
 
 @mcp.tool()
@@ -173,27 +207,6 @@ def run_select_query(query: str):
         # Catch all other exceptions and return them in a structured format
         # to prevent MCP serialization failures
         return {"status": "error", "message": f"Unexpected error: {str(e)}"}
-
-
-def create_clickhouse_client():
-    client_config = ch_config.get_client_config()
-    # logger.info(
-    #     f"Creating ClickHouse client connection to {client_config['host']}:{client_config['port']} "
-    #     f"as {client_config['username']} "
-    #     f"(secure={client_config['secure']}, verify={client_config['verify']}, "
-    #     f"connect_timeout={client_config['connect_timeout']}s, "
-    #     f"send_receive_timeout={client_config['send_receive_timeout']}s)"
-    # )
-
-    try:
-        client = clickhouse_connect.get_client(**client_config)
-        # Test the connection
-        version = client.server_version
-        logger.info(f"Successfully connected to ClickHouse server version {version}")
-        return client
-    except Exception as e:
-        logger.error(f"Failed to connect to ClickHouse: {str(e)}")
-        raise
 
 
 

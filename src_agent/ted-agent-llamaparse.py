@@ -4,6 +4,7 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_parse import LlamaParse
 from pathlib import Path
 from dotenv import load_dotenv
+
 load_dotenv()
 
 

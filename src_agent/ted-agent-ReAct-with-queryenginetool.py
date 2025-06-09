@@ -112,7 +112,7 @@ agent = ReActAgent.from_tools(
     verbose=True,
     # context=context  (system prompt)
 )
-
+ 
 prompt_dict = agent.get_prompts()
 for k, v in prompt_dict.items():
     print(f"Prompt: {k} \n\nValue: {v.template}")

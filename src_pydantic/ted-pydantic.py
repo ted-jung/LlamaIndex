@@ -1,3 +1,11 @@
+# =============================================================================
+# Pydantic with structured output
+# Created: 30, May 2025
+# Updated: 31, May 2025
+# Writer: Ted, Jung
+# Description: 
+# =============================================================================
+
 import json
 import os
 

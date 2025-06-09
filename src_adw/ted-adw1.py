@@ -44,7 +44,6 @@ from llama_index.core.llms import ChatMessage, MessageRole, LLM
 from llama_index.core.retrievers import BaseRetriever
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from llama_parse import LlamaParse
 
 
 curr_dir = os.getcwd()
@@ -68,19 +67,13 @@ llm = OpenAI(model="gpt-4o-mini")
 
 
 
-# Document read using a reader with a parser to build the index & retriever
-# turn the pdf file into retriever to be used in the workflow for compliance checking
-parser = LlamaParse(result_type="markdown")
-reader = SimpleDirectoryReader(input_dir=f"{curr_dir}/src_adw/data", required_exts=[".pdf"])
-documents = reader.load_data()
-index = VectorStoreIndex.from_documents(documents)
-retriever = index.as_retriever(similarity_top_k=2)
 
 
 
 
 # Define Output Schema(Data Structure) for ContractClause and ContractExtraction
 # Convert raw data into python objects
+
 class ContractClause(BaseModel):
     clause_text: str = Field(..., description="The exact text of the clause.")
     mentions_data_processing: bool = Field(False, description="True if the clause involves personal data collection or usage.")
@@ -98,6 +91,7 @@ class ContractExtraction(BaseModel):
 
 
 # Define Check Schema for Compliance Checking
+
 class GuidelineMatch(BaseModel):
     guideline_text: str = Field(..., description="The single most relevant guideline excerpt related to this clause.")
     similarity_score: float = Field(..., description="Similarity score indicating how closely the guideline matches the clause, e.g., between 0 and 1.")
@@ -112,6 +106,7 @@ class ClauseComplianceCheck(BaseModel):
 
 
 # Define Output Schema for Final
+
 class ComplianceReport(BaseModel):
     vendor_name: Optional[str] = Field(None, description="The vendor's name if identified from the contract.")
     overall_compliant: bool = Field(..., description="Indicates if the contract is considered overall compliant.")
@@ -166,7 +161,7 @@ If there are no noncompliant clauses, the report should indicate that the contra
 """
 
 
-# Define five events to be used in a workflow
+# Define five events
 class ContractExtractionEvent(Event):
     contract_extraction: ContractExtraction
 
@@ -274,7 +269,7 @@ class ContractReviewWorkflow(Workflow):
         await ctx.set("num_clauses", len(ev.contract_extraction.clauses))
         await ctx.set("vendor_name", ev.contract_extraction.vendor_name)
         
-        # repeat the total number of clasues
+        # repeat as many times as the number of clasues
         # to return event via ctx.send_event insread of directly returning of event.
         for clause in ev.contract_extraction.clauses:
             ctx.send_event(MatchGuidelineEvent(clause=clause, vendor_name=ev.contract_extraction.vendor_name))
@@ -386,8 +381,18 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
 
 
 
+# Document read using a reader with a parser to build the index & retriever
+# Turn the pdf file into retriever to be used in the workflow for compliance checking
+parser = LlamaParse(result_type="markdown")
 
-# Create a workflow
+reader = SimpleDirectoryReader(input_dir=f"{curr_dir}/src_adw/data", required_exts=[".pdf"])
+documents = reader.load_data()
+index = VectorStoreIndex.from_documents(documents)
+retriever = index.as_retriever(similarity_top_k=2)
+
+
+
+# create a workflow
 workflow = ContractReviewWorkflow(
     parser=parser,
     guideline_retriever=retriever,
@@ -400,7 +405,7 @@ workflow = ContractReviewWorkflow(
 
 
 
-async def main():
+async def ted():
     # handler is an object which is refer to coroutine.
     handler = workflow.run(contract_path=f"{curr_dir}/src_adw/data/vendor_agreement.md")
     async for event in handler.stream_events():
@@ -419,4 +424,5 @@ async def main():
 
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(ted())
