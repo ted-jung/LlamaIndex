@@ -54,7 +54,7 @@ def ted_query(str_context, str_query):
 
     Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5") 
     # Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5") 
-    llm = OpenAI(model="gpt-4o-mini", timeout=720.0)
+    llm = OpenAI(model="gpt-4.1-nano", timeout=720.0)
 
     # print(str_context)
 
@@ -69,6 +69,8 @@ def ted_query(str_context, str_query):
         ---------------------
 
         Given the context and Output direction not prior knowledge,
+        Do not remove any information from the context.
+
         Answer the query.
 
         Query: {query_str}
@@ -157,9 +159,10 @@ if __name__ == "__main__":
 
         message = ted_query(career_response, """
             Which job has posted for which country? 
-            ## Output Direction. 
-            1. Make a summarized table with columns(Position, Country, Sum of Jobs, Continent) by Continent. 
-            2. Make a summarized table group by Continent.
+                            
+            ### Output Direction. 
+            1. Make a summary table with columns(Position, Country, Sum of Position, Continent) order by Position. 
+            2. Make a summary table group by Country.
             3. Show Korea position status at the end. 
 
             """
