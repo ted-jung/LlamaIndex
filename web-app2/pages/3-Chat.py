@@ -80,7 +80,7 @@ def display_pdf(file):
 
 
 st.set_page_config(layout="wide")
-st.write("Chat with your Language Model regarding Documents!.")
+st.markdown("### Chat with your Language Model regarding Documents!.")
 
 col1, col2 = st.columns([3, 7])
 
@@ -88,12 +88,14 @@ with col1:
 
     st.header("Choose your LLM!")
     # options to select the LLM (add more if needed)
-    option=st.selectbox(" ", ("-", "llama3.2", "gpt-4o-mini"),)
+    option=st.selectbox(" ", ("-", "llama3.2", "gpt-4o-mini", "gpt-4.1-nano"),)
 
     if option == "llama3.2":
         llm = Ollama(model="llama3.2", request_timeout=120.0)
     elif option == "gpt-4o-mini":
         llm = OpenAI(model="gpt-4o-mini")
+    elif option == "gpt-4.1-nano":
+        llm = OpenAI(model="gpt-4.1-nano")
     else:
         st.write("Please select a LLM")
         st.stop()
@@ -119,6 +121,7 @@ with col1:
 
                 if file_key not in st.session_state.get('file_cache', {}):
 
+                    # Load the document using SimpleDirectoryReader
                     if os.path.exists(temp_dir):
                             loader = SimpleDirectoryReader(
                                 input_dir = temp_dir,
@@ -129,6 +132,8 @@ with col1:
                         st.error('Could not find the file you uploaded, please check again...')
                         st.stop()
                     
+                    # Load the data from the document
+                    # Note: This will read the PDF and convert it into a list of documents
                     docs = loader.load_data()
 
                     # setup llm & embedding model and Creating an index over loaded data and indexing it
@@ -198,6 +203,10 @@ with col2:
             full_response = ""
             
             # Simulate stream of response with milliseconds delay
+            if 'file_cache' not in st.session_state or not st.session_state.file_cache:
+                st.error("Document doesn't indexed yet. Please upload a document to chat with the LLM.")
+                st.stop()
+
             streaming_response = query_engine.query(prompt)
             
             for chunk in streaming_response.response_gen:
