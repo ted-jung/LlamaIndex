@@ -184,7 +184,7 @@ class LogEvent(Event):
 
 
 class ContractReviewWorkflow(Workflow):
-    """Contract review workflow."""
+    """Contract review workflow against GDPR."""
 
     def __init__(
         self,
@@ -200,7 +200,6 @@ class ContractReviewWorkflow(Workflow):
 
         self.parser = parser
         self.guideline_retriever = guideline_retriever
-        
         self.llm = llm or OpenAI(model="gpt-4o-mini")
         self.similarity_top_k = similarity_top_k
 
@@ -244,11 +243,12 @@ class ContractReviewWorkflow(Workflow):
 
             if not isinstance(contract_extraction, ContractExtraction):
                 raise ValueError(f"Invalid extraction from contract: {contract_extraction}")
-            
+
             # save output template to file
             # same extracted data in json format
             with open(contract_extraction_path, "w") as fp:
                 fp.write(contract_extraction.model_dump_json())
+
         if self._verbose:
             ctx.write_event_to_stream(LogEvent(msg=f"\n\n>> Contract data: {contract_extraction.model_dump()}"))
 
@@ -261,14 +261,15 @@ class ContractReviewWorkflow(Workflow):
         """For each clause in the contract, find relevant guidelines.
 
         Use a map-reduce pattern. 
-        
+
         """
 
-        # set total number of clasues to be processed and the vendor name
-        # to be used in the workflow
+        # set total number of clauses and the vendor name
+        # to be processed and be used in the workflow
         await ctx.set("num_clauses", len(ev.contract_extraction.clauses))
         await ctx.set("vendor_name", ev.contract_extraction.vendor_name)
-        
+
+        # two values (vendor_name, clauses) for the next step
         # repeat as many times as the number of clasues
         # to return event via ctx.send_event insread of directly returning of event.
         for clause in ev.contract_extraction.clauses:
@@ -288,11 +289,12 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
 """
         guideline_docs = self.guideline_retriever.retrieve(query)
         guideline_text="\n\n".join([g.get_content() for g in guideline_docs])
+
         if self._verbose:
             ctx.write_event_to_stream(
                 LogEvent(msg=f"\n\n>> Found guidelines: {guideline_text[:200]}...")
             )
-        
+
         # extract from contract
         # this is a core of the compliacne check to predict the compliance of the contract clause
         # against the guideline
@@ -303,7 +305,7 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
             clause_text=ev.clause.model_dump_json(),
             guideline_text=guideline_text
         )
-        
+
         if not isinstance(compliance_output, ClauseComplianceCheck):
             raise ValueError(f"Invalid compliance check: {compliance_output}")
 
@@ -355,13 +357,13 @@ Please find the relevant guideline from {ev.vendor_name} that aligns with the fo
 
         # use string format method to format the string
         non_compliant_strings = []
-        for nr in non_compliant_results:
+        for ncr in non_compliant_results:
             non_compliant_strings.append(
                 result_tmpl.format(
-                    clause=nr.clause_text,
-                    guideline=nr.matched_guideline.guideline_text,
-                    compliance_status=nr.compliant,
-                    notes=nr.notes
+                    clause=ncr.clause_text,
+                    guideline=ncr.matched_guideline.guideline_text,
+                    compliance_status=ncr.compliant,
+                    notes=ncr.notes
                 )
             )
         non_compliant_str = "\n\n".join(non_compliant_strings)
@@ -392,7 +394,7 @@ retriever = index.as_retriever(similarity_top_k=2)
 
 
 
-# create a workflow
+# create a workflow with retriever on gdpr document
 workflow = ContractReviewWorkflow(
     parser=parser,
     guideline_retriever=retriever,
