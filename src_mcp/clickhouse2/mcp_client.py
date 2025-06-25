@@ -106,8 +106,12 @@ class MCPClient():
             # return: A list of FuntionTool objects
             mcp_client = BasicMCPClient(f"http://{self.mcp_server_url}:8000/sse")
 
+            # Two ways to get MCP tools
+            # Option1)
             # self.tool_spec = McpToolSpec(client=mcp_client)
             # tools = await self.tool_spec.to_tool_list_async()
+
+            # Option2)
             tools = await aget_tools_from_mcp_url(
                 f"http://{self.mcp_server_url}:8000/sse",
                 client=mcp_client
@@ -175,6 +179,12 @@ async def get_function_agent(tools) -> FunctionAgent:
 
 
 async def handle_user_message(message_content: str, agent: ReActAgent):
+    """
+    Handles a user message by passing it to the ReActAgent and returning the agent's response.
+
+    The ReActAgent uses the LLM to decide which tool to use based on the user's message and the tool descriptions.
+    It iteratively reasons and acts (calls tools) until it arrives at a final answer.
+    """
     user_message = ChatMessage.from_str(role="user", content=message_content)
     response = await agent.achat(message=user_message.content)
     return response.response
