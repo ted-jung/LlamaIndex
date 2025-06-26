@@ -32,14 +32,14 @@ Here are examples for your tables:
 
     * Concatenated String Example:
 
-    """
+    ```
     Destination: Paris.
     Description: The romantic capital of France, known for its art, fashion, gastronomy, and culture.
     Location: Europe.
     Best time to visit: Spring or Autumn.
     Key attractions: Eiffel Tower, Louvre Museum, Notre Dame Cathedral.
     Tags: city, romantic, historical, art, food.
-    """
+    ```
 
 2. `activities` Table:
 
@@ -47,7 +47,7 @@ Here are examples for your tables:
 
     * Concatenated String Example:
 
-    """
+    ```
     Activity: Eiffel Tower Guided Tour.
     Description: Guided tour of the iconic Eiffel Tower, including skip-the-line access and panoramic views.
     Type: sightseeing.
@@ -55,7 +55,7 @@ Here are examples for your tables:
     Price range: $50-100.
     Associated Destination: Paris.
     Tags: landmark, tour, iconic, France, architecture.
-    """
+    ```
 
 3. `hotels` Table:
 
@@ -63,7 +63,7 @@ Here are examples for your tables:
 
     * Concatenated String Example:
 
-    """
+    ```
     Hotel: The Grand Hyatt Paris.
     Description: Luxury hotel in the heart of Paris, offering stunning views and world-class service.
     Location: Paris city center.
@@ -72,7 +72,7 @@ Here are examples for your tables:
     Price Range: $300+.
     Associated Destination: Paris.
     Summary of Reviews: Guests consistently praise the excellent service, central location, and luxurious amenities.
-    """
+    ```
 
 4. `restaurants` Table:
 
