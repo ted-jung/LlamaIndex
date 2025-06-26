@@ -79,7 +79,7 @@ Here's why and how:
 
         * Concatenated String Example:
 
-        """
+        ```
         Restaurant: Le Jules Verne.
         Description: Michelin-starred restaurant located on the Eiffel Tower, offering exquisite French cuisine and unparalleled views.
         Cuisine Type: French, Fine Dining.
@@ -88,7 +88,7 @@ Here's why and how:
         Dietary Options: Vegetarian options available upon request.
         Associated Destination: Paris.
         Summary of Reviews: Renowned for its breathtaking views and exceptional culinary experience.
-        """
+        ```
 
     5. `reviews` Table:
 
@@ -116,8 +116,8 @@ Here's why and how:
     4. Store in Vector Database: Ingest these vectors into your vector database, along with a unique identifier for the original record (e.g., destination_id, activity_id) and potentially the original concatenated text.
 
     5. Semantic Search: When a user query comes in, 
-       5.1 embed the query
-       5.2 perform a similarity search in your vector database to retrieve the most relevant entity vectors.
+       - embed the query
+       - perform a similarity search in your vector database to retrieve the most relevant entity vectors.
 
     6. Retrieve Original Data: Use the unique identifiers from the retrieved vectors to fetch the full, structured data from your relational database. (or get the original text value from the same table where the field is stored as metadata)
 
