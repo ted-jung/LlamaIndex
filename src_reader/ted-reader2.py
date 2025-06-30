@@ -1,6 +1,16 @@
-# This is a conceptual snippet.
+# =============================================================================
+# Title: Reader
+# Created: 29, Jun 2025
+# Updated: 29, Jun 2025
+# Writer: Ted,Jung
+# Description:
+#       1. Init index
+#       2. Connect to Database to select fields and turn it into Documents in an array
+#       3. Create index of vectorstore using the retrieved document on step2
+#       4. Do q auery
 # You would need to install llama-index and a vector store client (e.g., pinecone-client)
 # pip install llama-index openai pinecone-client sqlalchemy
+# =============================================================================
 
 import os
 import pandas as pd
@@ -25,9 +35,20 @@ DB_CONNECTION_STRING = "postgresql://user:password@host:port/database" # Replace
 
 
 
-# --- 1. Data Loading and Preprocessing (Simulated from your DB) ---
 
-def load_and_preprocess_hotels_from_db():
+# --- 1. Initialize LlamaIndex Components ---
+
+# Initialize LLM and Embedding Model and Pinecone
+llm = OpenAI(model="gpt-4.1-nano") # Or gpt-3.5-turbo
+embed_model = OpenAIEmbedding(model="text-embedding-ada-002") # Or text-embedding-3-small/large
+pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
+
+
+
+
+# --- 2. Data Loading and Preprocessing (Simulated from your DB) ---
+
+def load_and_preprocess_hotels_from_db() -> list[Document]:
     """
     Simulates loading hotel data from your relational database and concatenating fields.
     In a real app, you'd fetch this from your DB.
@@ -59,18 +80,11 @@ def load_and_preprocess_hotels_from_db():
 
 
 
-# --- 2. Initialize LlamaIndex Components ---
-
-# Initialize LLM and Embedding Model and Pinecone
-llm = OpenAI(model="gpt-4.1-nano") # Or gpt-3.5-turbo
-embed_model = OpenAIEmbedding(model="text-embedding-ada-002") # Or text-embedding-3-small/large
-pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-
 
 
 # --- 3. Create/Load Vector Store Index ---
 
-def setup_hotel_index():
+def setup_hotel_index() -> VectorStoreIndex:
     # Check if index exists, if not, create it
     if PINECONE_INDEX_NAME not in pc.list_indexes().names:
         pc.create_index(
@@ -88,6 +102,7 @@ def setup_hotel_index():
 
     # Create index from documents and store in Pinecone
     # This step will generate embeddings and upload them to Pinecone
+
     index = VectorStoreIndex.from_documents(
         documents,
         vector_store=vector_store,
@@ -95,6 +110,9 @@ def setup_hotel_index():
         llm=llm # LLM is used for node parsing and other internal operations
     )
     return index
+
+
+
 
  # --- 4. Query the Index ---
 
@@ -106,6 +124,8 @@ def query_hotel_index(query_text: str, index: VectorStoreIndex):
     )
     response = query_engine.query(query_text)
     return response
+
+
 
 
 # --- Main Execution ---
