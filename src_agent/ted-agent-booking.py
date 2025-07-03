@@ -1,9 +1,10 @@
 # =============================================================================
 # Agent for booking during chatting
 # Created: 22, Jan 2025
-# Updated: 11, Feb 2025
+# Updated: 3, Jul 2025
 # Writer: Ted, Jung
-# Description: Booking agent(FunctionCallingAgent) with functiontool
+# Description: 
+#       Booking agent(FunctionCallingAgent) with functiontool
 # =============================================================================
 
 
@@ -116,7 +117,9 @@ prefix_messages = [
 ]
 
 
-
+# Define FunctionCallingAgent having a list of tools
+# Tool will be choosen via LLM
+# Leave the system message to direct LLM
 agent = FunctionCallingAgent.from_tools(
     tools=[
         get_booking_state_tool,
