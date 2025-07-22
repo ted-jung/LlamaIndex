@@ -23,7 +23,7 @@ from llama_index.core import Settings
 
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5") 
 # Settings.llm = OpenAI(model="gpt-4o-mini")
-llm = OpenAI(model="gpt-4o-mini")
+llm = OpenAI(model="gpt-4.1-nano")
 
 
 # wikipediaReader, it returns List with data
@@ -59,9 +59,16 @@ We are looking for a technically savvy and business-minded solutions architect t
 """
 
 
+# Instantiate the RSPack: screen resumes based on the JD and Criteria
+# This will 
+# - read the PDF resume
+# - synthesize decisions based on the criteria, 
+# - provide overall reasoning and decisions.
+#
+# The LLM is set to gpt-4o-mini, which is a smaller and more cost-effective model for this task.
 # Criterias for screening for the job
-# Read PDF
 # Position for CA, SA
+
 st.write("# Position for CA, SA! 👋")
 resume_screener = ResumeScreenerPack(
     job_description=meta_jd,
