@@ -5,6 +5,7 @@
 # Writer: Ted, Jung
 # Description: 
 #   Scrap web page -> Indexing -> PromptTemplate -> Query
+#   Selenum is used to get the dynamic web page.
 # =============================================================================
 
 
@@ -82,7 +83,11 @@ def ted_query(str_context, str_query):
     template_var_mappings = {"context_str": f"{str_context}",  "query_str": f"{str_query}"}
     prompt_tmpl = PromptTemplate(qa_prompt_tmpl_str, template_var_mappings)
 
-    answer_engine = ted_index.as_query_engine(llm = llm, prompt_tmpl=prompt_tmpl, response_mode="compact")
+    answer_engine = ted_index.as_query_engine(
+        llm = llm, 
+        prompt_tmpl=prompt_tmpl, 
+        response_mode="compact"
+    )
 
     display_prompt_dict(answer_engine.get_prompts())
     res = (answer_engine.query(str_query))
@@ -163,7 +168,7 @@ if __name__ == "__main__":
             ### Output Direction. 
             1. Make a summary table with columns(Position, Country, Sum of Position, Continent) order by Position. 
             2. Make a summary table group by Country.
-            3. Show Korea position status at the end. 
+            3. Show Korea's Job position status at the end. 
 
             """
         )
