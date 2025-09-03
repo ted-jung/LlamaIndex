@@ -1,10 +1,12 @@
 # ===========================================================================
 # LlamaParse
 # Created: 2, Mar 2025
-# Updated: 2, Mar 2025
+# Updated: 3, Sep 2025
 # Writer: Ted, Jung
 # Description: 
 #   LlamaParse -> splitter(document, nodes) -> postprocessor -> engine
+#   Supported file types: PDF, DOCX, PPTX, TXT, CSV, MD, etc
+#   LlamaParse requires an API key from LlamaCloud
 # ===========================================================================
 
 
@@ -22,7 +24,7 @@ from llama_index.core import Settings
 
 from llama_parse import LlamaParse
 from llama_index.core.node_parser import MarkdownElementNodeParser
-from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
+# from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
 
 
 nest_asyncio.apply()
@@ -33,26 +35,29 @@ os.environ["LLAMA_CLOUD_API_KEY"] = "llx-..."
 
 
 embed_model = OpenAIEmbedding(model="text-embedding-3-small")
-llm = OpenAI(model="gpt-4o-mini")
+llm = OpenAI(model="gpt-4.1-nano")
 
 Settings.llm = llm
 Settings.embed_model = embed_model
 
 
 # LlamaParse PDF reader for PDF Parsing
+# Load data from the input path, it returns a list of documents
 curr_dir = os.getcwd()
-documents = LlamaParse(result_type="markdown").load_data(
+documents = LlamaParse(result_type="markdown", verbose=True).load_data(
     f"{curr_dir}/data/pdf/uber_10q_march_2022.pdf"
 )
 
-# print(documents[0].text[:1000] + "...")
+print(documents[0].text[:1000] + "...")
 
 
 # This is good for document having heading, table and paragraphs
 # Turn documents to Nodes
 # granular parsing
+# Splits a markdown document into Text Nodes and Index Nodes corresponding to embedded objects
+# (e.g. tables).
 node_parser = MarkdownElementNodeParser(
-    llm=OpenAI(model="gpt-4o-mini"), num_workers=8
+    llm=OpenAI(model="gpt-4.1-nano"), num_workers=8
 )
 
 
