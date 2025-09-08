@@ -159,13 +159,13 @@ async def ted2():
     )
 
     user_msgs = [
-        "Hi! My name is Logan",
-        "What is your opinion on minature shnauzers?",
-        "Do they shed a lot?",
-        "What breeds are comparable in size?",
-        "What is your favorite breed?",
-        "Would you recommend owning a dog?",
-        "What should I buy to prepare for owning a dog?",
+        "Hi! My name is Ted",
+        "What is your opinion on sushi?",
+        "Does it have a strong flavor?",
+        "What dishes are comparable in taste?",
+        "What is your favorite food?",
+        "Would you recommend trying this restaurant?",
+        "What should I buy to prepare for cooking Italian food?",
     ]
 
     for user_msg in user_msgs:
