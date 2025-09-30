@@ -3,13 +3,21 @@
 # Date: 30, Jan 2025
 # Updated: 27, Feb 2025
 # Writer: Ted, Jung
-# Description: Evaluate the Query Engine
-#              evaluates whether a response is faithful(i.g, hallucinated?) to the contexts
+# Description: 
+#    Evaluate the Query Engine
+#    evaluates whether a response is faithful(i.g, hallucinated?) to the contexts
+#    Two evaluation
+#    - Response: Response <-> Retrieved Contexts, Query, Guidelines
+#    - Retrieval: Source <-> Query
 # ===========================================================================
 
 
 from llama_index.core import VectorStoreIndex, Settings, SimpleDirectoryReader
-from llama_index.core.evaluation import FaithfulnessEvaluator, RelevancyEvaluator, RetrieverEvaluator
+from llama_index.core.evaluation import (
+    FaithfulnessEvaluator, 
+    RelevancyEvaluator, 
+    RetrieverEvaluator
+)
 
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.ollama import Ollama
